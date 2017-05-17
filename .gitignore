@@ -1,0 +1,6 @@
+# Mac stuff
+.DS_Store
+
+# python
+*.ipynb_checkpoints
+*.pyc
