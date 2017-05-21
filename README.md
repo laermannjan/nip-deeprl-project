@@ -1,4 +1,5 @@
 # Deep Reinforcment Learning Project 2017
+[Deep RL Project Calendar](https://calendar.google.com/calendar/ical/fuc8n5c750pte22c32kgi940ug%40group.calendar.google.com/private-42a8e26f0d1130a135a2a1fd08accb6a/basic.ics)
 
 ## Project Plan
 
@@ -47,7 +48,6 @@ Wendilin's writing sequence:
 * method
 * experiment
 * introduction (including results)
-				
 				
 ## Misc. Notes
 ### OpenAI gym installation
