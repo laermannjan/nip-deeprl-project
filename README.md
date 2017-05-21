@@ -1,6 +1,17 @@
 # Deep Reinforcment Learning Project 2017
 [Deep RL Project Calendar](https://calendar.google.com/calendar/ical/fuc8n5c750pte22c32kgi940ug%40group.calendar.google.com/private-42a8e26f0d1130a135a2a1fd08accb6a/basic.ics)
 
+## Task Assignments
+Seonguk
+    * Image input to DQN for inv. pend.
+Jan 
+    * Play inv. pend. via representation
+Robert
+    * Play lunar lander via representation
+Manuel
+    * Image input to DQN for lunar lander
+
+
 ## Project Plan
 
 - [ ] Finish Double Pendulum environment (did we miss [this](https://gym.openai.com/evaluations/eval_NCtq2gxEQYZ78yvTutpQw)?)
