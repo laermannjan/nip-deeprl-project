@@ -15,6 +15,9 @@ import datetime
 
 # Setup
 LOGGING_PATH = '../logging/'
+LOG_LEVEL = logging.INFO
+MONITORING_PATH = '../monitoring/'
+MONITORING = False
 
 ENV_ID = 'Acrobot-v1'
 env = gym.make(ENV_ID)
@@ -26,18 +29,16 @@ HYPER = {
     'replay_memory' : 50000,
     'minibatch_size' : 10,
     'hidden_size' : 100,
-    'max_episodes' : 500,
+    'max_episodes' : 50,
     'discount' : 0.9,
     'learning_rate' : 1e-1
 }
 
-def logger_setup():
-    today = datetime.datetime.today()
-    log_file = '{}{}{}{}'.format(
+def logger_setup(timestamp):
+    log_file = '{}{}_{}.log'.format(
         LOGGING_PATH,
         ENV_ID,
-        today.strftime('_%Y-%m-%d-%H-%M'),
-        '.log')
+        timestamp)
 
     formatter = logging.Formatter('[%(asctime)s] (%(levelname)s): %(message)s')
     handler = logging.FileHandler(log_file)
@@ -45,7 +46,7 @@ def logger_setup():
 
     logger = logging.getLogger(__name__)
     logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(LOG_LEVEL)
 
     return logger
 
@@ -159,7 +160,7 @@ def bot_play(mainDQN, env=env):
     state = env.reset()
     reward_sum = 0
     while True:
-        env.render()
+        # env.render()
         action = np.argmax(mainDQN.predict(state))
         state, reward, done, _ = env.step(action)
         reward_sum += reward
@@ -189,6 +190,7 @@ def main():
             state = env.reset()
 
             while not done:
+                # env.render()
                 if np.random.rand(1) < e:
                     action = env.action_space.sample()
                     logger.debug('Episode {}. Step {}. Random action chosen: {}'.format(episode, step_count, action))
@@ -226,18 +228,28 @@ def main():
                 # copy q_net -> target_net
                 sess.run(copy_ops)
             else:
-                logger.info('Episode {} finished after {}.'.format(episode, step_count))
+                logger.info('Episode {} finished after {} steps.'.format(episode, step_count))
 
         # See our trained bot in action
-        env2 = wrappers.Monitor(env, 'gym-results', force=True)
+        # env2 = wrappers.Monitor(env, 'gym-results', force=True)
 
-        for i in range(200):
-            bot_play(mainDQN, env=env2)
+        # for i in range(200):
+            # bot_play(mainDQN, env=env2)
 
-        env2.close()
+        # env2.close()
         # gym.upload("gym-results", api_key="sk_VT2wPcSSOylnlPORltmQ")
 
 if __name__ == "__main__":
-    logger = logger_setup()
+    timestamp = datetime.datetime.today().strftime('%Y-%m-%d-%H-%M')
+    logger = logger_setup(timestamp)
     logger.info('Initializing experiment with these Hyperparams: {}'.format(HYPER))
+    if MONITORING:
+        monitor_dir = '{}{}/training'.format(MONITORING_PATH, timestamp)
+        env = wrappers.Monitor(env, monitor_dir)
+        logger.info('Monitor output saved here: {}'.format(monitor_dir))
     main()
+    # if PLAY:
+    #     monitor_dir = '{}{}/playing'.format(MONITORING_PATH, timestamp)
+    #     env2 = wrappers.Monitor(env, monitor_dir)
+    #     for _ in range(200):
+    #         pass
