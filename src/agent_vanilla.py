@@ -14,11 +14,10 @@ import yaml
 import datetime
 
 # Setup
-LOGGING_PATH = '../res/logging/'
-YAML_CONFIG = 'logging.yaml'
+LOGGING_PATH = '../logging/'
 
-ENV_NAME = 'Acrobot-v1'
-env = gym.make(ENV_NAME)
+ENV_ID = 'Acrobot-v1'
+env = gym.make(ENV_ID)
 
 # Hyperparams
 HYPER = {
@@ -32,24 +31,23 @@ HYPER = {
     'learning_rate' : 1e-1
 }
 
-def setup_logging(yaml_config):
-    global config_dict
-    with open(yaml_config) as f:
-        config_dict = yaml.load(f)
+def logger_setup():
+    today = datetime.datetime.today()
+    log_file = '{}{}{}{}'.format(
+        LOGGING_PATH,
+        ENV_ID,
+        today.strftime('_%Y-%m-%d-%H-%M'),
+        '.log')
 
-        # Rename logfile
-        log_filename = config_dict['handlers']['fileHandler']['filename']
-        base, extension = os.path.splitext(log_filename)
-        today = datetime.datetime.today()
-        log_filename = '{}{}{}{}'.format(
-            LOGGING_PATH,
-            ENV_NAME,
-            today.strftime('_%Y-%m-%d-%H-%M'),
-            extension)
-        config_dict['handlers']['fileHandler']['filename'] = log_filename
+    formatter = logging.Formatter('[%(asctime)s] (%(levelname)s): %(message)s')
+    handler = logging.FileHandler(log_file)
+    handler.setFormatter(formatter)
 
-        # Apply config
-        logging.config.dictConfig(config_dict)
+    logger = logging.getLogger(__name__)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+    return logger
 
 
 class DQN:
@@ -91,11 +89,6 @@ class DQN:
 
     def update(self, x_stack, y_stack):
         return self.session.run([self._loss, self._train], feed_dict={self._X: x_stack, self._Y: y_stack})
-
-
-
-
-
 
 
 def replay_train(mainDQN, targetDQN, train_batch):
@@ -177,8 +170,10 @@ def bot_play(mainDQN, env=env):
 def main():
     # store the previous observations in replay memory
     replay_buffer = deque()
+    logger.debug('Initializing Replay Buffer as: {}'.format(replay_buffer))
 
     with tf.Session() as sess:
+        logger.debug('Initializing main and target network...')
         mainDQN = DQN(sess, HYPER['input_size'], HYPER['output_size'], name="main")
         targetDQN = DQN(sess, HYPER['input_size'], HYPER['output_size'], name="target")
         tf.global_variables_initializer().run()
@@ -196,15 +191,18 @@ def main():
             while not done:
                 if np.random.rand(1) < e:
                     action = env.action_space.sample()
+                    logger.debug('Episode {}. Step {}. Random action chosen: {}'.format(episode, step_count, action))
                 else:
                     # Choose an action by greedily from the Q-network
                     action = np.argmax(mainDQN.predict(state))
+                    logger.debug('Episode {}. Step {}. Greedy action chosen: {}'.format(episode, step_count, action))
 
                 # Get new state and reward from environment
-                next_state, reward, done, _ = env.step(action)
+                next_state, reward, done, _ = env.step(action) # last return gives 'observations', might be useful
 
                 # Save the experience to our buffer
                 replay_buffer.append((state, action, reward, next_state, done))
+                logger.debug('Adding to replay buffer: {} -> {}. Reward: {}, Done: {}.'.format(state, next_state, reward, done))
                 if len(replay_buffer) > HYPER['replay_memory']:
                       replay_buffer.popleft()
 
@@ -213,7 +211,7 @@ def main():
                 if step_count > 10000:   # Good enough. Let's move on
                     break
 
-            print("Episode: {} steps: {}".format(episode, step_count))
+            # print("Episode: {} steps: {}".format(episode, step_count))
             if step_count > 10000:
                 pass
                 # break
@@ -224,9 +222,11 @@ def main():
                     minibatch = random.sample(replay_buffer, HYPER['minibatch_size'])
                     loss, _ = ddqn_replay_train(mainDQN, targetDQN, minibatch)
 
-                print("Loss: ", loss)
+                logger.info('Episode {}. Steps {}. Loss: {}'.format(episode, step_count, loss))
                 # copy q_net -> target_net
                 sess.run(copy_ops)
+            else:
+                logger.info('Episode {}. Steps {}.'.format(episode, step_count))
 
         # See our trained bot in action
         env2 = wrappers.Monitor(env, 'gym-results', force=True)
@@ -238,7 +238,6 @@ def main():
         # gym.upload("gym-results", api_key="sk_VT2wPcSSOylnlPORltmQ")
 
 if __name__ == "__main__":
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    logger.info('hi')
+    logger = logger_setup()
+    logger.info('Initializing experiment with these Hyperparams: {}'.format(HYPER))
     main()
