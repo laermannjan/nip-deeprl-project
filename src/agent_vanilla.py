@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import numpy as np
 import tensorflow as tf
 import random
@@ -236,7 +238,7 @@ def main():
         # gym.upload("gym-results", api_key="sk_VT2wPcSSOylnlPORltmQ")
 
 if __name__ == "__main__":
-    setup_logging(LOGGING_PATH + YAML_CONFIG)
     logger = logging.getLogger()
-    logger.info('Starting Test with hyperparameters: %s,', HYPER)
+    logger.setLevel(logging.INFO)
+    logger.info('hi')
     main()
