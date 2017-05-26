@@ -222,11 +222,11 @@ def main():
                     minibatch = random.sample(replay_buffer, HYPER['minibatch_size'])
                     loss, _ = ddqn_replay_train(mainDQN, targetDQN, minibatch)
 
-                logger.info('Episode {}. Steps {}. Loss: {}'.format(episode, step_count, loss))
+                logger.info('Episode {} finished after {} steps with a loss of: {}'.format(episode, step_count, loss))
                 # copy q_net -> target_net
                 sess.run(copy_ops)
             else:
-                logger.info('Episode {}. Steps {}.'.format(episode, step_count))
+                logger.info('Episode {} finished after {}.'.format(episode, step_count))
 
         # See our trained bot in action
         env2 = wrappers.Monitor(env, 'gym-results', force=True)
