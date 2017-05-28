@@ -7,6 +7,7 @@ import tensorflow as tf
 import dqn
 from utils import EpsilonStrategy as e_strat
 from utils import train_agent
+from utils import compare_agents
 
 
 class VanillaAgent(object):
@@ -56,6 +57,16 @@ class VanillaAgent(object):
             action =  self.action_space.sample()
             logger.debug('Action was chosen at random: {}'.format(action))
         return action
+
+    def play(self, env, sess):
+        state = env.reset()
+        reward_sum = 0
+        while True:
+            action = self.act(state, 0, sess)
+            state, reward, done, _ = env.step(action)
+            reward_sum += reward
+            if done:
+                return reward_sum
 
     def learn(self, env, sess):
         self.env = env
@@ -110,6 +121,7 @@ class VanillaAgent(object):
 
 if __name__ == '__main__':
     import os
+    import logging
     import gym
     from utils import logger_setup
     # Get rid of TF warnings concerning TF not being compiled from source.
@@ -119,6 +131,7 @@ if __name__ == '__main__':
 
     env = gym.make('Acrobot-v1')
     logger = logger_setup(env.spec.id)
+    # logger = logger_setup(env.spec.id,log_level=logging.DEBUG)
 
     # custom agent config
     config = {
@@ -136,5 +149,10 @@ if __name__ == '__main__':
 
 
     agent = VanillaAgent(env.action_space, config=config)
-    train_agent(agent, env)
-    #train_agent(agent, env, monitor_root_dir='../monitoring/')
+    with tf.Session() as sess:
+        train_agent(agent, env, sess, logger=logger)
+        #train_agent(agent, env, monitor_root_dir='../monitoring/')
+
+        from random_agent import RandomAgent
+        rand_agent = RandomAgent(env.action_space)
+        compare_agents(agent, rand_agent, env, sess, logger=logger)
