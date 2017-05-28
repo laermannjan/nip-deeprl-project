@@ -1,14 +1,25 @@
 # Deep Reinforcment Learning Project 2017
 [Deep RL Project Calendar](https://calendar.google.com/calendar/ical/fuc8n5c750pte22c32kgi940ug%40group.calendar.google.com/private-42a8e26f0d1130a135a2a1fd08accb6a/basic.ics)
 
+## Useful findings
+* Video rendering: If `env.render()` is not called, a video will be produces according to the default schedule (from monitoring.py):
+
+```python
+def capped_cubic_video_schedule(episode_id):  
+    if episode_id < 1000:  
+        return int(round(episode_id ** (1. / 3))) ** 3 == episode_id  
+    else:  
+        return episode_id % 1000 == 0  
+```
+Should be resolved by calling `env.render()` per episode.
 ## Task Assignments
-Seonguk
+- Seonguk
     * Image input to DQN for inv. pend.
-Jan 
+- Jan 
     * Play inv. pend. via representation
-Robert
+- Robert
     * Play lunar lander via representation
-Manuel
+- Manuel
     * Image input to DQN for lunar lander
 
 
