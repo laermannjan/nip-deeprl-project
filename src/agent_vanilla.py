@@ -13,6 +13,11 @@ import logging.config
 import yaml
 import datetime
 
+# Get rid of TF warnings concerning TF not being compiled from source.
+# this might also hide other stuff (haven't checked yet)
+# compiling from source supposed to give 3-8x performance boost depending on data size)
+os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
+
 # Setup
 LOGGING_PATH = '../logging/'
 LOG_LEVEL = logging.INFO
@@ -165,8 +170,38 @@ def bot_play(mainDQN, env=env):
         state, reward, done, _ = env.step(action)
         reward_sum += reward
         if done:
-            print("Total score: {}".format(reward_sum))
-            break
+            return reward_sum
+
+def random_baseline(env=env):
+    # Set a baseline with an agent taken random actions only
+    state = env.reset()
+    reward_sum = 0
+    while True:
+        action = env.action_space.sample()
+        state, reward, done, _ =  env.step(action)
+        reward_sum += reward
+        if done:
+            return reward_sum
+
+def compare_to_baseline(env, agent, n=200):
+    logger.info('Benchmarking against random baseline...')
+    if MONITORING:
+        save_dir = '{}versus/{}'.format(MONITORING_PATH, agent)
+        env = wrappers.Monitor(env, save_dir)
+
+    baseline_reward = [random_baseline(env) for _ in range(n)]
+    agent_reward  = [bot_play(agent, env) for _ in range(n)]
+
+    logger.debug('Baseline performances: {}'.format(baseline_reward))
+    logger.debug('Agent performances: {}'.format(agent_reward))
+
+    baseline_reward = np.mean(baseline_reward)
+    agent_reward = np.mean(agent_reward)
+
+    logger.info('Avg. baseline performance: {}'.format(baseline_reward))
+    logger.info('Avg. agent performance: {}'.format(agent_reward))
+
+    return baseline_reward, agent_reward
 
 def main():
     # store the previous observations in replay memory
@@ -229,6 +264,9 @@ def main():
                 sess.run(copy_ops)
             else:
                 logger.info('Episode {} finished after {} steps.'.format(episode, step_count))
+
+        compare_to_baseline(env, mainDQN)
+
 
         # See our trained bot in action
         # env2 = wrappers.Monitor(env, 'gym-results', force=True)
