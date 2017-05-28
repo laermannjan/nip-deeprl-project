@@ -4,3 +4,6 @@
 # python
 *.ipynb_checkpoints
 *.pyc
+
+# emacs stuff
+.#*
