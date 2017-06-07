@@ -1,5 +1,5 @@
 
-<import gym
+import gym
 import tensorflow as tf
 import numpy as np
 import random as ran
@@ -10,8 +10,7 @@ game_name = 'LunarLander-v2'
 env = gym.make(game_name).env
 
 INPUT_SIZE = env.observation_space.shape[0]
-LAYER = 3 ; layerrange = [1,2,3]
-HIDDEN_SIZE = [30, 30, 30]
+HIDDEN_SIZE = [30, 30, 30] ; hsizerange = [[30, 30], [30, 30, 30], [20, 20], [20, 20, 20]]
 OUTPUT_SIZE = env.action_space.n
 LEARNING_RATE = 0.001 ; lraterange = [0.01,0.005,0.001,0.0005,0.0001]
 
@@ -58,6 +57,7 @@ def ddqn_replay_train(mainDQN, targetDQN, train_batch):
 
     # Train our network using target and predicted Q values on each episode
     return mainDQN.update(x_stack, y_stack)
+
 def bot_play(mainDQN, env=env):
     # See our trained network in action
     state = env.reset()
@@ -77,6 +77,7 @@ def bot_play(mainDQN, env=env):
             #save test score here
             print("Total score: {}".format(reward_sum))
             break
+
 def get_copy_var_ops(*, dest_scope_name="target", src_scope_name="main"):
 
     # Copy variables src_scope to dest_scope
@@ -89,6 +90,7 @@ def get_copy_var_ops(*, dest_scope_name="target", src_scope_name="main"):
         op_holder.append(dest_var.assign(src_var.value()))
 
     return op_holder
+
 class DQN:
     def __init__(self, session, name="main"):
         self.session = session
@@ -97,31 +99,27 @@ class DQN:
 
     def _build_network(self, name):
         with tf.variable_scope(name):
-            self.x = tf.placeholder(tf.float32, shape = [None, INPUT_SIZE])
-            W1 =  tf.get_variable("W1", shape = [INPUT_SIZE, HIDDEN_SIZE[0]], initializer=tf.contrib.layers.xavier_initializer())
-            W2 = tf.get_variable("W2", shape = [HIDDEN_SIZE[0], HIDDEN_SIZE[1]], initializer=tf.contrib.layers.xavier_initializer())
-            W3 = tf.get_variable("W3", shape = [HIDDEN_SIZE[1], HIDDEN_SIZE[2]], initializer=tf.contrib.layers.xavier_initializer())
-            W4 = tf.get_variable("W4", shape = [HIDDEN_SIZE[2], OUTPUT_SIZE], initializer=tf.contrib.layers.xavier_initializer())
+            LAYER_SIZE = [INPUT_SIZE] + HIDDEN_SIZE + [OUTPUT_SIZE]
 
-            layer1 = tf.nn.tanh(tf.matmul(self.x, W1))
-            layer2 = tf.nn.tanh(tf.matmul(layer1, W2))
-            layer3 = tf.nn.tanh(tf.matmul(layer2, W3))
+            W_list = []
+            for i in range(len(LAYER_SIZE)-1):
+                W = tf.get_variable(str.format("W{}", i),
+                                    shape=[LAYER_SIZE[i], LAYER_SIZE[i+1]],
+                                    initializer=tf.contrib.layers.xavier_initializer())
+                W_list.append(W)
 
-            if LAYER == 1: 
-                W2_ = tf.get_variable("W2_", shape = [HIDDEN_SIZE[0], OUTPUT_SIZE], initializer=tf.contrib.layers.xavier_initializer())
-                self.y_pred = tf.matmul(layer1, W2_)
-                print('1 hidden layer')
-            elif LAYER == 2: 
-                W3_ = tf.get_variable("W3_", shape = [HIDDEN_SIZE[1], OUTPUT_SIZE], initializer=tf.contrib.layers.xavier_initializer())
-                self.y_pred = tf.matmul(layer2, W3_)
-                print('2 hidden layer')
-            else: 
-                self.y_pred = tf.matmul(layer3, W4)
-                print('3 hidden layer')
+            self.x = tf.placeholder(tf.float32, shape=[None, INPUT_SIZE])
+            layer = self.x
+            for W in W_list[:-1]:
+                layer = tf.nn.tanh(tf.matmul(layer, W))
+
+            self.y_pred = tf.matmul(layer, W_list[-1])
+
+            print('{} Hidden Layer'.format(len(HIDDEN_SIZE)))
 
         self.dropout = tf.placeholder(dtype=tf.float32) # not used
                 
-        self.y = tf.placeholder(tf.float32, shape = [None, OUTPUT_SIZE])
+        self.y = tf.placeholder(tf.float32, shape=[None, OUTPUT_SIZE])
 
         self.loss = tf.reduce_sum(tf.square(self.y_pred - self.y))
         self.train = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(self.loss)
@@ -150,7 +148,7 @@ with tf.Session() as sess:
         step_count = 0
         while not done:
             step_count += 1
-            if np.random.rand(1) < max(0.1,e):
+            if np.random.rand(1) < max(0.1, e):
                 action = env.action_space.sample()
             else:
                 action = np.argmax(mainDQN.predict(state))
@@ -170,7 +168,7 @@ with tf.Session() as sess:
             if step_count > STEPS_PER_EPISODE:
                 break
 
-        #print("Episode {} steps {} with Reward {}".format(episode, step_count, reward_episode))
+        # print("Episode {} steps {} with Reward {}".format(episode, step_count, reward_episode))
 
         if episode % EPISODE_PER_TRAINING == EPISODE_PER_TRAINING-1:
             
