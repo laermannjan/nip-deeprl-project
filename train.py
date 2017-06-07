@@ -1,10 +1,12 @@
+import os
+from collections import namedtuple
 import gym
 
-from baselines import deepq
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
-from collections import namedtuple
-import os
+
+from baselines import deepq
+from baselines import logger
 
 from configs import Configs
 
@@ -19,7 +21,6 @@ def is_solved_func(lcl, glb):
 
 if __name__ == '__main__':
     config = Configs['cartpole_basic']
-    print(config.learning_rate)
 
     env = gym.make(config.env)
     act = deepq.learn(
@@ -44,5 +45,5 @@ if __name__ == '__main__':
     if not os.path.exists(pickle_dir):
         os.makedirs(pickle_dir)
     pickle_fname = 'cartpole_model.pkl' # TODO: Need to add some sort of id, maybe timestamp
-    print("Saving model as {}".format(pickle_fname))
+    logger.log("Saving model as {}".format(pickle_fname))
     act.save(os.path.join(pickle_dir,pickle_fname))
