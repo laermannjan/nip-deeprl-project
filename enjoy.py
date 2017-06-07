@@ -1,11 +1,13 @@
 import gym
+import argparse
+import os
 
 from baselines import deepq
 import tensorflow as tf
 
-def main():
-    env = gym.make("CartPole-v0")
-    act = deepq.load("cartpole_model.pkl")
+def enjoy(env_id, agent_fname):
+    env = gym.make(env_id)
+    act = deepq.load(agent_fname)
 
     while True:
         obs, done = env.reset(), False
@@ -18,4 +20,23 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(prog='enjoy',
+                                     description='Let a trained agent play an OpenAI Gym env.')
+    parser.add_argument('env',
+                        action='store',
+                        choices=['Cartpole-v0', 'LunarLander-v2', 'Acrobot-v1'],
+                        metavar='ENV',
+                        type=str,
+                        help='OpenAI Gym Id of the environment.')
+    parser.add_argument('agent_fname',
+                        action='store',
+                        metavar='FNAME',
+                        type=str,
+                        help='''File name of the pickled agent. 
+                        No safety checks if this is actually a pickled agent.''')
+
+    args = parser.parse_args()
+    if not os.path.isfile(args.agent_fname):
+        parser.error('Your specified agent cannot be found.')
+
+    enjoy(args.env, args.agent_fname)
