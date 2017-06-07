@@ -46,7 +46,7 @@ class VanillaAgent(object):
 
     def _update_epsilon(self, episode):
         if self.config['eps_strategy'] == e_strat.GREEDY:
-            return 1. / ((episode / 10) + 1) #TODO: these vals need to be reviewed!!
+            return 1. / ((episode / 100) + 1) #TODO: these vals need to be reviewed!!
 
 
     def act(self, state, eps, sess):
@@ -74,9 +74,9 @@ class VanillaAgent(object):
         output_size = self.env.action_space.n
 
         logger.info('Initializing main and target networks...')
-        self.main_dqn = dqn.DQN(sess, input_size, self.config['hidden_size'],
+        self.main_dqn = dqn.TwoLayerDQN(sess, input_size, self.config['hidden_size'],
                                 output_size, self.config['learning_rate'], name='main')
-        self.target_dqn = dqn.DQN(sess, input_size, self.config['hidden_size'],
+        self.target_dqn = dqn.TwoLayerDQN(sess, input_size, self.config['hidden_size'],
                                   output_size, self.config['learning_rate'], name='target')
         tf.global_variables_initializer().run()
 
@@ -129,21 +129,21 @@ if __name__ == '__main__':
     # compiling from source supposed to give 3-8x performance boost depending on data size)
     os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
-    env = gym.make('Acrobot-v1')
+    env = gym.make('Acrobot-v1').env
     logger = logger_setup(env.spec.id)
     # logger = logger_setup(env.spec.id,log_level=logging.DEBUG)
 
     # custom agent config
     config = {
-        'replay_buffer_size' : 50000,
-        'minibatch_size' : 10,
+        'replay_buffer_size' : 100000,
+        'minibatch_size' : 32,
         'hidden_size' : 100,
-        'max_episodes' : 50,
+        'max_episodes' : 500,
         'max_steps' : 10000,
-        'discount' : 0.9,
-        'learning_rate' : 1e-1,
-        'train_freq' : 10,
-        'train_length' :  50,
+        'discount' : 0.99,
+        'learning_rate' : 1e-2,
+        'train_freq' : 5,
+        'train_length' :  500,
         'eps_strategy' : e_strat.GREEDY
      }
 
