@@ -51,11 +51,8 @@ def model(inpt, num_actions, scope, reuse=False):
         out = layers.fully_connected(out, num_outputs=num_actions, activation_fn=None)
         return out
 
-def train(config, num_cpu=8):
+def train(env, config, num_cpu=8):
     with U.make_session(num_cpu):
-        # Create the environment
-        env = gym.make(config.env).env
-
         def make_obs_ph(name):
             return U.BatchInput(env.observation_space.shape, name=name)
 
@@ -158,26 +155,24 @@ def train(config, num_cpu=8):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='custom_train',
                                      description='Train agent to play an OpenAI gym env.')
-    parser.add_argument('-c', '--cartpole',
-                        action='store_true',
-                        help='Use OpenAI Gym\'s Cartpole-v0 env.')
-    parser.add_argument('-l', '--lunarlander',
-                        action='store_true',
-                        help='Use OpenAI Gym\'s LunarLander-v2 env.')
-    parser.add_argument('-a', '--acrobot',
-                        action='store_true',
-                        help='Use OpenAI Gym\'s Acrobot-v1 env.')
+    parser.add_argument('env',
+                        action='store',
+                        choices=['Cartpole-v0', 'LunarLander-v2', 'Acrobot-v1'],
+                        metavar='ENV',
+                        type=str,
+                        help='OpenAI Gym Id of the environment.')
+    parser.add_argument('config',
+                        action='store',
+                        choices=Configs.keys(),
+                        metavar='CONFIG',
+                        type=str,
+                        help='Name of config from configs.py.')
     parser.add_argument('--dir',
                         action='store',
                         type=str,
                         dest='pickle_dir',
                         default='trained_agents',
                         help='Directory to save trained agent.')
-    parser.add_argument('--config',
-                        action='store',
-                        type=str,
-                        dest='config',
-                        help='Name of config from configs.py.')
     parser.add_argument('--cores',
                         action='store',
                         type=int,
@@ -186,15 +181,7 @@ if __name__ == '__main__':
                         help='Number of cpu cores to be used for training.')
     args = parser.parse_args()
 
-    if sum(map(bool, (args.cartpole, args.lunarlander, args.acrobot))) != 1:
-        parser.error('You need to specify exactly one environment!')
-        parser.print_help()
-    if args.config is None:
-        parser.error('You need to specify a config.')
-        parser.print_help()
-    if args.config not in Configs.keys():
-        parser.error('Your specified config does not exist.')
-    else:
-        config = Configs[args.config]
+    env = gym.make(args.env).env
+    config = Configs[args.config]
     num_cpu = args.num_cpu
-    train(config, num_cpu)
+    train(env, config, num_cpu)
