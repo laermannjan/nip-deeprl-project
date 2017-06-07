@@ -1,6 +1,7 @@
 import os
 from collections import namedtuple
 import gym
+import datetime
 
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
@@ -18,10 +19,7 @@ def is_solved_cartpole(lcl, glb, min_t_solved, mean_window, min_mean_reward):
 def is_solved_func(lcl, glb):
     return is_solved_cartpole(lcl, glb, config.min_t_solved, config.mean_window, config.min_mean_reward)
 
-
-if __name__ == '__main__':
-    config = Configs['cartpole_basic']
-
+def train(config):
     env = gym.make(config.env)
     act = deepq.learn(
         env,
@@ -44,6 +42,11 @@ if __name__ == '__main__':
     pickle_dir = 'trained_agents'
     if not os.path.exists(pickle_dir):
         os.makedirs(pickle_dir)
-    pickle_fname = 'cartpole_model.pkl' # TODO: Need to add some sort of id, maybe timestamp
+    pickle_fname = '{}_model_{}.pkl'.format(env.spec.id,
+                                            datetime.datetime.today().strftime('%Y-%m-%d-%H-%M'))
     logger.log("Saving model as {}".format(pickle_fname))
     act.save(os.path.join(pickle_dir,pickle_fname))
+
+if __name__ == '__main__':
+    config = Configs['acrobot_basic']
+    train(config)
