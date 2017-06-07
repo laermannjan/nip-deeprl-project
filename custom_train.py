@@ -70,6 +70,12 @@ if __name__ == '__main__':
             optimizer=config.optimizer(learning_rate=config.learning_rate),
         )
 
+        exploration_schedule = config.exploration_schedule(
+            schedule_timesteps=config.schedule_timesteps,
+            initial_p=config.initial_p,
+            final_p=config.final_p)
+
+        replay_buffer = ReplayBuffer(config.replay_buffer_size)
         # Initialize the parameters and copy them to the target network.
         U.initialize()
         update_target()
@@ -80,15 +86,11 @@ if __name__ == '__main__':
         with tempfile.TemporaryDirectory() as td:
             model_saved = False
             model_file  = os.path.join(td, 'model')
-            for t in itertools.count():
+            for t in range(config.max_timesteps):
                 # Take action and update exploration to the newest value
-                exploration_schedule = config.exploration_schedule(schedule_timesteps=config.schedule_timesteps,
-                                                                   initial_p=config.initial_p,
-                                                                   final_p=config.final_p)
                 action = act(obs[None], update_eps=exploration_schedule.value(t))[0]
                 new_obs, rew, done, _ = env.step(action)
                 # Store transition in the replay buffer.
-                replay_buffer = ReplayBuffer(config.replay_buffer_size)
                 replay_buffer.add(obs, action, rew, new_obs, float(done))
                 obs = new_obs
 
@@ -119,15 +121,21 @@ if __name__ == '__main__':
                     if saved_mean_reward is None  or mean_reward > saved_mean_reward:
                         if config.print_freq is not None:
                             logger.log('Saving model due to mean reward increase: {} -> {}'.format(saved_mean_reward, mean_reward))
-                        U.save_state(os.path.join(os.getcwd(),'checkpoints/test_model'))
-                        ActWrapper(act, act_params).save('trained_agents/custom_cartpole_model.pkl')
+                        U.save_state(model_file)
+                        saved_mean_reward = mean_reward
+                        model_saved = True
             if model_saved:
-                if print_freq is not None:
-                    logger.log("Restored model with mean reward: {}".format(saved_mean_reward))
                 U.load_state(model_file)
-                saved_mean_reward = mean_reward
                 act_params = {
                     'make_obs_ph' : make_obs_ph,
                     'num_actions' : env.action_space.n,
                     'q_func' : model,
                 }
+                pickle_dir = 'trained_agents'
+                if not os.path.exists(pickle_dir):
+                    os.makedirs(pickle_dir)
+                pickle_fname = 'custom_cartpole_model.pkl' # TODO: Need to add some sort of id, maybe timestamp
+                if config.print_freq is not None:
+                    logger.log("Restored model with mean reward: {}".format(saved_mean_reward))
+                    logger.log("Saving model as {}".format(pickle_fname))
+                ActWrapper(act, act_params).save(os.path.join(pickle_dir, pickle_fname))
