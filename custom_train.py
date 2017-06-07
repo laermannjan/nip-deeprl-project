@@ -1,6 +1,9 @@
 import gym
 import itertools
 import numpy as np
+import datetime
+import argparse
+
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
 
@@ -48,16 +51,10 @@ def model(inpt, num_actions, scope, reuse=False):
         out = layers.fully_connected(out, num_outputs=num_actions, activation_fn=None)
         return out
 
-
-
-if __name__ == '__main__':
-    # select configuration
-    config = Configs['cartpole_basic']
-    num_cpu = 8 # number of cores used in this session
-
+def train(config, num_cpu=8):
     with U.make_session(num_cpu):
         # Create the environment
-        env = gym.make(config.env)
+        env = gym.make(config.env).env
 
         def make_obs_ph(name):
             return U.BatchInput(env.observation_space.shape, name=name)
@@ -81,6 +78,7 @@ if __name__ == '__main__':
         update_target()
 
         episode_rewards = [0.0]
+        episode_lengths = [0]
         obs = env.reset()
         saved_mean_reward = None
         with tempfile.TemporaryDirectory() as td:
@@ -90,20 +88,24 @@ if __name__ == '__main__':
                 # Take action and update exploration to the newest value
                 action = act(obs[None], update_eps=exploration_schedule.value(t))[0]
                 new_obs, rew, done, _ = env.step(action)
+                rew = rew if not done else config.done_reward
+                done = done if episode_lengths[-1] != config.max_timesteps_ep else True
+
                 # Store transition in the replay buffer.
                 replay_buffer.add(obs, action, rew, new_obs, float(done))
                 obs = new_obs
 
                 episode_rewards[-1] += rew
-                if done:
-                    obs = env.reset()
-                    episode_rewards.append(0)
+                episode_lengths[-1] += 1
 
-                mean_reward = np.mean(episode_rewards[-(config.mean_window+1):-1])
+                mean_reward = np.mean(episode_rewards[-config.mean_window:])
+                mean_ep_len = np.mean(episode_lengths[-config.mean_window:])
+
+
                 is_solved = t > config.min_t_solved and mean_reward >= config.min_mean_reward
                 if not is_solved:
                     # Minimize the error in Bellman's equation on a batch sampled from replay buffer.
-                    if t > config.update_freq:
+                    if t > config.learning_delay and t % config.train_freq == 0:
                         obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(config.minibatch_size)
                         train(obses_t, actions, rewards, obses_tp1, dones, np.ones_like(rewards))
                     # Update target network periodically.
@@ -111,19 +113,29 @@ if __name__ == '__main__':
                         update_target()
 
                 if config.print_freq is not None and done and len(episode_rewards) % config.print_freq == 0:
-                    logger.record_tabular("steps", t)
-                    logger.record_tabular("episodes", len(episode_rewards))
+                    logger.record_tabular("total steps", t)
+                    logger.record_tabular("episodes", len(episode_rewards) - 1)
+                    logger.record_tabular("mean episode length", round(mean_ep_len, 0))
                     logger.record_tabular("mean episode reward", round(mean_reward, 1))
                     logger.record_tabular("% time spent exploring", int(100 * exploration_schedule.value(t)))
                     logger.dump_tabular()
 
-                if config.checkpoint_freq is not None and t > config.update_freq and t % config.checkpoint_freq == 0:
-                    if saved_mean_reward is None  or mean_reward > saved_mean_reward:
+                if config.checkpoint_freq is not None and t > config.learning_delay and t % config.checkpoint_freq == 0:
+                    if saved_mean_reward is None or mean_reward > saved_mean_reward:
                         if config.print_freq is not None:
                             logger.log('Saving model due to mean reward increase: {} -> {}'.format(saved_mean_reward, mean_reward))
                         U.save_state(model_file)
                         saved_mean_reward = mean_reward
                         model_saved = True
+
+                if is_solved:
+                    break
+
+                if done:
+                    obs = env.reset()
+                    episode_rewards.append(0)
+                    episode_lengths.append(0)
+
             if model_saved:
                 U.load_state(model_file)
                 act_params = {
@@ -131,11 +143,58 @@ if __name__ == '__main__':
                     'num_actions' : env.action_space.n,
                     'q_func' : model,
                 }
+
                 pickle_dir = 'trained_agents'
                 if not os.path.exists(pickle_dir):
                     os.makedirs(pickle_dir)
-                pickle_fname = 'custom_cartpole_model.pkl' # TODO: Need to add some sort of id, maybe timestamp
+                pickle_fname = '{}_model_{}_custom.pkl'.format(env.spec.id,
+                                                        datetime.datetime.today().strftime('%Y-%m-%d-%H-%M'))
                 if config.print_freq is not None:
                     logger.log("Restored model with mean reward: {}".format(saved_mean_reward))
                     logger.log("Saving model as {}".format(pickle_fname))
                 ActWrapper(act, act_params).save(os.path.join(pickle_dir, pickle_fname))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog='custom_train',
+                                     description='Train agent to play an OpenAI gym env.')
+    parser.add_argument('-c', '--cartpole',
+                        action='store_true',
+                        help='Use OpenAI Gym\'s Cartpole-v0 env.')
+    parser.add_argument('-l', '--lunarlander',
+                        action='store_true',
+                        help='Use OpenAI Gym\'s LunarLander-v2 env.')
+    parser.add_argument('-a', '--acrobot',
+                        action='store_true',
+                        help='Use OpenAI Gym\'s Acrobot-v1 env.')
+    parser.add_argument('--dir',
+                        action='store',
+                        type=str,
+                        dest='pickle_dir',
+                        default='trained_agents',
+                        help='Directory to save trained agent.')
+    parser.add_argument('--config',
+                        action='store',
+                        type=str,
+                        dest='config',
+                        help='Name of config from configs.py.')
+    parser.add_argument('--cores',
+                        action='store',
+                        type=int,
+                        dest='num_cpu',
+                        default=8,
+                        help='Number of cpu cores to be used for training.')
+    args = parser.parse_args()
+
+    if sum(map(bool, (args.cartpole, args.lunarlander, args.acrobot))) != 1:
+        parser.error('You need to specify exactly one environment!')
+        parser.print_help()
+    if args.config is None:
+        parser.error('You need to specify a config.')
+        parser.print_help()
+    if args.config not in Configs.keys():
+        parser.error('Your specified config does not exist.')
+    else:
+        config = Configs[args.config]
+    num_cpu = args.num_cpu
+    train(config, num_cpu)
