@@ -15,7 +15,7 @@ Hyperparameters = namedtuple('Hyperparameters', [
     'schedule_timesteps', # Number of steps until final_p is reached
     'num_nodes', # Number of nodes per hidden layer
     'act_fns', # Activation functions for each layer
-    'learning_rate', 
+    'learning_rate',
     'optimizer', # Q-Function optimizer with given learning rate
     'mean_window', # Window size to compute mean over last episodes
     'min_t_solved', # Minimum episodes before considering a taask solved, should be >= mean_window
@@ -128,6 +128,8 @@ Configs = {
         mean_window=100,
         min_t_solved=50,
         min_mean_reward=-200,
+        learning_delay=10,
+        minibatch_size=10,
         train_freq=25,
         update_freq=50,
         gamma=0.99,

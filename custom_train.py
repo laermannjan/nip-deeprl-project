@@ -22,6 +22,7 @@ from configs import Configs
 def train(env, config_name, pickle_root, exp_name, num_cpu=8):
     config = Configs[config_name]
     env = gym.make(env).env
+    model = deepq.models.mlp(config.num_nodes)
     with U.make_session(num_cpu):
         def make_obs_ph(name):
             return U.BatchInput(env.observation_space.shape, name=name)
@@ -29,7 +30,7 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
         # Create all the functions necessary to train the model
         act, train, update_target, debug = deepq.build_train(
             make_obs_ph=make_obs_ph,
-            q_func=deepq.models.mlp(config.num_nodes),
+            q_func=model,
             num_actions=env.action_space.n,
             optimizer=config.optimizer(learning_rate=config.learning_rate),
         )
