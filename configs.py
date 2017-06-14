@@ -231,7 +231,240 @@ Configs = {
         is_solved_func=1
     ),
 
+    'LL_100-100-100' : Hyperparameters(
+        replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=500*3000,
+        max_timesteps_ep=500,
 
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=500*800,
+
+        num_nodes=[100, 100, 100],
+        act_fns=[tf.nn.relu, tf.nn.relu, tf.nn.relu],
+
+        learning_rate=5e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=5000, # should be irrelevant
+        min_mean_reward=150, # accumulated reward negative for acrobot
+
+        learning_delay=5000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=50, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=15000,
+        gamma=0.99,
+
+        done_reward=50,
+
+        checkpoint_freq=10000,
+        print_freq=50,
+
+        is_solved_func=1
+    ),
+    'LL_150-100-50' : Hyperparameters(
+        replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=500*3000,
+        max_timesteps_ep=500,
+
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=500*800,
+
+        num_nodes=[150, 100, 50],
+        act_fns=[tf.nn.relu, tf.nn.relu, tf.nn.relu],
+
+        learning_rate=5e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=5000, # should be irrelevant
+        min_mean_reward=150, # accumulated reward negative for acrobot
+
+        learning_delay=5000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=50, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=15000,
+        gamma=0.99,
+
+        done_reward=50,
+
+        checkpoint_freq=10000,
+        print_freq=50,
+
+        is_solved_func=1
+    ),
+    'LL_150-150-150' : Hyperparameters(
+        replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=500*3000,
+        max_timesteps_ep=500,
+
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=500*800,
+
+        num_nodes=[150, 150, 150],
+        act_fns=[tf.nn.relu, tf.nn.relu, tf.nn.relu],
+
+        learning_rate=5e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=5000, # should be irrelevant
+        min_mean_reward=150, # accumulated reward negative for acrobot
+
+        learning_delay=5000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=50, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=15000,
+        gamma=0.99,
+
+        done_reward=50,
+
+        checkpoint_freq=10000,
+        print_freq=50,
+
+        is_solved_func=1
+    ),
+    'LL_200-150-100' : Hyperparameters(
+        replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=500*3000,
+        max_timesteps_ep=500,
+
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=500*800,
+
+        num_nodes=[200, 150, 100],
+        act_fns=[tf.nn.relu, tf.nn.relu, tf.nn.relu],
+
+        learning_rate=5e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=5000, # should be irrelevant
+        min_mean_reward=150, # accumulated reward negative for acrobot
+
+        learning_delay=5000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=50, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=15000,
+        gamma=0.99,
+
+        done_reward=50,
+
+        checkpoint_freq=10000,
+        print_freq=50,
+
+        is_solved_func=1
+    ),
+    'LL_exp10k' : Hyperparameters(
+        replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=500*3000,
+        max_timesteps_ep=500,
+
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=500*20,
+
+        num_nodes=[200, 150, 100],
+        act_fns=[tf.nn.relu, tf.nn.relu, tf.nn.relu],
+
+        learning_rate=5e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=5000, # should be irrelevant
+        min_mean_reward=150, # accumulated reward negative for acrobot
+
+        learning_delay=5000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=50, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=15000,
+        gamma=0.99,
+
+        done_reward=50,
+
+        checkpoint_freq=10000,
+        print_freq=50,
+
+        is_solved_func=1
+    ),
+    'LL_exp400k' : Hyperparameters(
+        replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=500*3000,
+        max_timesteps_ep=500,
+
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=500*800,
+
+        num_nodes=[200, 150, 100],
+        act_fns=[tf.nn.relu, tf.nn.relu, tf.nn.relu],
+
+        learning_rate=5e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=5000, # should be irrelevant
+        min_mean_reward=150, # accumulated reward negative for acrobot
+
+        learning_delay=5000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=50, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=15000,
+        gamma=0.99,
+
+        done_reward=50,
+
+        checkpoint_freq=10000,
+        print_freq=50,
+
+        is_solved_func=1
+    ),
 
     'dummy' : Hyperparameters(
         replay_buffer_size=500,
