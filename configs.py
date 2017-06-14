@@ -112,6 +112,127 @@ Configs = {
         is_solved_func=1
     ),
 
+    'acrobot_relu' : Hyperparameters(
+        replay_buffer_size=50000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=2500000,
+        max_timesteps_ep=5000,
+
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=150000,
+
+        num_nodes=[30, 30, 30],
+        act_fns=[tf.nn.relu, tf.nn.relu, tf.nn.relu],
+
+        learning_rate=1e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=50000, # should be irrelevant
+        min_mean_reward=-200, # accumulated reward negative for acrobot
+
+        learning_delay=50000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=25, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=50000,
+        gamma=0.99,
+
+        done_reward=30,
+
+        checkpoint_freq=10000,
+        print_freq=10,
+
+        is_solved_func=1
+    ),
+    'lunarlander_basic' : Hyperparameters(
+        replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=500*30,
+        max_timesteps_ep=500,
+
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=500*800,
+
+        num_nodes=[200, 150, 100],
+        act_fns=[tf.nn.tanh, tf.nn.tanh, tf.nn.tanh],
+
+        learning_rate=5e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=5000, # should be irrelevant
+        min_mean_reward=150, # accumulated reward negative for acrobot
+
+        learning_delay=5000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=50, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=15000,
+        gamma=0.99,
+
+        done_reward=50,
+
+        checkpoint_freq=10000,
+        print_freq=50,
+
+        is_solved_func=1
+    ),
+
+    'lunarlander_relu' : Hyperparameters(
+        replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
+        max_timesteps=500*30,
+        max_timesteps_ep=500,
+
+        initial_p=1.0,
+        final_p=0.1,
+
+        # naive
+        exploration_fraction=0.6,
+        # custom
+        exploration_schedule=LinearSchedule,
+        schedule_timesteps=500*800,
+
+        num_nodes=[200, 150, 100],
+        act_fns=[tf.nn.relu, tf.nn.relu, tf.nn.relu],
+
+        learning_rate=5e-3,
+        optimizer=tf.train.AdamOptimizer,
+
+        mean_window=100,
+        min_t_solved=5000, # should be irrelevant
+        min_mean_reward=150, # accumulated reward negative for acrobot
+
+        learning_delay=5000, # should be equal to epoche length, s.t. our replay buffer is full
+        minibatch_size=100, # the smaller we choose, the more instable our system becomes
+        # instead of prio sampling, oversample replay buffer - needs to take minibatch size into account
+        # minibatch_size * train_freq = replay_buffer_size * 2
+        train_freq=50, # = 50000/200 train mainDQN  200 times per update of targetDQN
+        update_freq=15000,
+        gamma=0.99,
+
+        done_reward=50,
+
+        checkpoint_freq=10000,
+        print_freq=50,
+
+        is_solved_func=1
+    ),
+
+
+
     'dummy' : Hyperparameters(
         replay_buffer_size=500,
         max_timesteps=2500,
