@@ -12,16 +12,16 @@ def capped_cubic_video_schedule(episode_id):
         return episode_id % 1000 == 0  
 ```
 Should be resolved by calling `env.render()` per episode.
-## Task Assignments
-- Seonguk
-    * Run testbench for LunarLander over parameter: 
+## Task Assi800gnments
+- Seonguk  ###
+    * --- 
 - Jan 
-    * Run testbench for Acrobot over parameter: 
+    * Run testbench for LunarLander over multiple architectures : (100-100-100) vs (150-100-50)  a 3x times = 6 runs 
 - Robert
-    * Run testbench for Acrobot over parameter: 
+    * Run testbench for LunarLander over multiple exploration rates : (10 000) vs (400 000)  a 3x times = 6 runs 
 - Manuel
-    * Run testbench for LunarLander over parameter: 
-    
+    * Run testbench for LunarLander over multiple architectures : (150-150-150) vs (200-150-100)  a 3x times = 6 runs 
+- SHOULD TAKE ABOUT 30 MINS per run
     
 ## Project Plan
 
@@ -30,14 +30,14 @@ Should be resolved by calling `env.render()` per episode.
     - [x] run vanilla DQN (statespace)
 	- [x] find stable parameters (Cartpole,Acrobot,Lunarlander)
     - [x] move from vanilla DQN to baseline implementation 
-    	- [ ] find stable parameters in statespace (Acrobot,Lunarlander)
+    	- [X] find stable parameters in statespace (Acrobot,Lunarlander)
 	- [x] adapt to imagespace 
 	- [ ] find stable parameters in imagespace (Acrobot,Lunarlander)
 
 - Notes
     - Change architecture
-	- [ ] rectifier units instead of hyperbolic tangent (!!! Xavier initialization is for sigmoidal units, LeCun init for ReLU
-	- [ ] discount factor gamma
+	- [x] rectifier units instead of hyperbolic tangent (!!! Xavier initialization is for sigmoidal units, LeCun init for ReLU
+	- [x] discount factor gamma
         WENDELIN's comment: 
 		>too large = unstable, too small = doesn't transport reward far enough
 		>there is some meassure of how robust the network is, by changing gamma and calculate number of steps needed (didn't understand that too well)
