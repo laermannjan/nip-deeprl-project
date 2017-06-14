@@ -7,6 +7,7 @@ import tempfile
 from collections import namedtuple
 
 import gym
+from gym import wrappers
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
 import baselines.common.tf_util as U
@@ -19,7 +20,7 @@ from baselines.deepq.simple import ActWrapper
 from configs import Configs
 
 
-def train(env, config_name, pickle_root, exp_name, num_cpu=8):
+def train(env, config_name, pickle_root, exp_name, num_cpu=8,run_num=1):
     config = Configs[config_name]
     env = gym.make(env).env
     with U.make_session(num_cpu):
@@ -46,6 +47,7 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
 
         episode_rewards = [0.0]
         episode_lengths = [0]
+        meanreward_array = [0.0]
         obs = env.reset()
         saved_mean_reward = None
         with tempfile.TemporaryDirectory() as td:
@@ -55,7 +57,7 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
                 # Take action and update exploration to the newest value
                 action = act(obs[None], update_eps=exploration_schedule.value(t))[0]
                 new_obs, rew, done, _ = env.step(action)
-                rew = rew if not done else config.done_reward
+                rew = rew #if not done else config.done_reward
                 done = done if episode_lengths[-1] != config.max_timesteps_ep else True
 
                 # Store transition in the replay buffer.
@@ -67,7 +69,7 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
 
                 mean_reward = np.mean(episode_rewards[-config.mean_window:])
                 mean_ep_len = np.mean(episode_lengths[-config.mean_window:])
-
+                meanreward_array[-1] += mean_reward
 
                 is_solved = t > config.min_t_solved and mean_reward >= config.min_mean_reward
                 if not is_solved:
@@ -78,6 +80,8 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
                     # Update target network periodically.
                     if t % config.update_freq == 0:
                         update_target()
+                    
+
 
                 if config.print_freq is not None and\
                    done and len(episode_rewards) % config.print_freq == 0:
@@ -87,7 +91,7 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
                     logger.record_tabular("mean episode reward", round(mean_reward, 1))
                     logger.record_tabular("% time spent exploring",
                                           int(100 * exploration_schedule.value(t)))
-                    logger.dump_tabular()
+                    logger.dump_tabular() ##### save stuff here?!?!?
 
                 if config.checkpoint_freq is not None and\
                    t > config.learning_delay and t % config.checkpoint_freq == 0:
@@ -95,24 +99,62 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
                         if config.print_freq is not None:
                             logger.log('Saving model due to mean reward increase: {} -> {}'\
                                        .format(saved_mean_reward, mean_reward))
+
                         U.save_state(model_file)
                         saved_mean_reward = mean_reward
                         model_saved = True
-
+                
+                if t % round(config.max_timesteps/4) == 0 and t > config.learning_delay:
+                    env2 = wrappers.Monitor(env, '{}gym-results{}'.format(run_num,t), force=True)
+                    env2.reset()
+                    reward_sum = 0
+                    cyc = 0
+                    while True:
+                        cyc += 1
+                        env2.render()
+                        action = act(obs[None])[0]
+                        new_obs, rew, done, _ = env2.step(action)
+                        obs = new_obs
+                        reward_sum += rew
+                        if done or cyc > 1500 :
+                            print("Total score: {} after {} episodes".format(reward_sum,t))
+                            break
+                    
+                
                 if is_solved:
+                    print ("--- SOLVED --- after {} episodes".format(t))
+                    env2 = wrappers.Monitor(env, '{}SOLVEDgym-results{}'.format(run_num,t), force=True)
+                
+                    env2.reset()
+                    reward_sum = 0
+                    cyc = 0
+                    while True:
+                        cyc += 1
+                        env2.render()
+                        action = act(obs[None])[0]
+                        new_obs, rew, done, _ = env2.step(action)
+                        obs = new_obs
+                        reward_sum += rew
+                        if done or cyc > 1500 :
+                            print("Total score: {}".format(reward_sum))
+                            break
+                    
                     break
 
                 if done:
                     obs = env.reset()
                     episode_rewards.append(0)
                     episode_lengths.append(0)
-
+                    meanreward_array.append(0)
+            np.save(str(run_num)+config_name+'_rewards',np.array(episode_rewards))
+            np.save(str(run_num)+config_name+'_lengths',np.array(episode_lengths))
+            np.save(str(run_num)+config_name+'_meanrewards',np.array(meanreward_array))
             if model_saved:
                 U.load_state(model_file)
                 act_params = {
                     'make_obs_ph' : make_obs_ph,
                     'num_actions' : env.action_space.n,
-                    'q_func' : model,
+                    'q_func' :  deepq.models.mlp(config.num_nodes),#model_file, #
                 }
 
                 exp_dir = '{}_{}'.format(env.spec.id, exp_name)
@@ -124,4 +166,4 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
                 if config.print_freq is not None:
                     logger.log("Restored model with mean reward: {}".format(saved_mean_reward))
                     logger.log("Saving model as {}".format(pickle_fname))
-                ActWrapper(act, act_params).save(os.path.join(pickle_dir, pickle_fname))
+                #ActWrapper(act, act_params).save(os.path.join(pickle_dir, pickle_fname))

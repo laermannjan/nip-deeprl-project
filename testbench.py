@@ -58,5 +58,5 @@ if __name__ == '__main__':
         logger.log('#'*35 + '\n' +
                    'Performing [{}/{}] experiments...\n'.format(i+1, len(args.configs)) +
                    '#'*35)
-        train(args.env, config_name, args.pickle_root, args.exp_name, args.num_cpu)
+        train(args.env, config_name, args.pickle_root, args.exp_name, args.num_cpu,run_num=i+1)
         U.reset()

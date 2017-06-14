@@ -6,7 +6,7 @@ from baselines import deepq
 import tensorflow as tf
 
 def enjoy(env_id, agent_fname):
-    env = gym.make(env_id)
+    env = gym.make(env_id).env
     act = deepq.load(agent_fname)
 
     while True:
