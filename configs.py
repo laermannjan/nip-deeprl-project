@@ -34,7 +34,7 @@ Hyperparameters = namedtuple('Hyperparameters', [
 ])
 
 Configs = {
-    'cartpole_basic' : Hyperparameters(
+    'CP_basic' : Hyperparameters(
         replay_buffer_size=50000,
         max_timesteps=100000,
         max_timesteps_ep=500,
@@ -72,7 +72,7 @@ Configs = {
         is_solved_func=1
     ),
 
-    'acrobot_basic' : Hyperparameters(
+    'AB_basic' : Hyperparameters(
         replay_buffer_size=50000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
         max_timesteps=2500000,
         max_timesteps_ep=5000,
@@ -112,7 +112,7 @@ Configs = {
         is_solved_func=1
     ),
 
-    'acrobot_relu' : Hyperparameters(
+    'AB_relu' : Hyperparameters(
         replay_buffer_size=50000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
         max_timesteps=2500000,
         max_timesteps_ep=5000,
@@ -151,7 +151,7 @@ Configs = {
 
         is_solved_func=1
     ),
-    'lunarlander_basic' : Hyperparameters(
+    'LL_basic' : Hyperparameters(
         replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
         max_timesteps=500*30,
         max_timesteps_ep=500,
@@ -191,7 +191,7 @@ Configs = {
         is_solved_func=1
     ),
 
-    'lunarlander_relu' : Hyperparameters(
+    'LL_relu' : Hyperparameters(
         replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
         max_timesteps=500*30,
         max_timesteps_ep=500,
