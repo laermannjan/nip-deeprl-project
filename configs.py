@@ -152,7 +152,7 @@ Configs = {
     ),
     'LL_100-100-100' : Hyperparameters(
         replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
-        max_timesteps=500*30,
+        max_timesteps=500*3000,
         max_timesteps_ep=500,
 
         initial_p=1.0,
@@ -191,7 +191,7 @@ Configs = {
     ),
     'LL_150-100-50' : Hyperparameters(
         replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
-        max_timesteps=500*30,
+        max_timesteps=500*3000,
         max_timesteps_ep=500,
 
         initial_p=1.0,
@@ -230,7 +230,7 @@ Configs = {
     ),
     'LL_150-150-150' : Hyperparameters(
         replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
-        max_timesteps=500*30,
+        max_timesteps=500*3000,
         max_timesteps_ep=500,
 
         initial_p=1.0,
@@ -269,7 +269,7 @@ Configs = {
     ),
     'LL_200-150-100' : Hyperparameters(
         replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
-        max_timesteps=500*30,
+        max_timesteps=500*3000,
         max_timesteps_ep=500,
 
         initial_p=1.0,
@@ -308,7 +308,7 @@ Configs = {
     ),
     'LL_exp10k' : Hyperparameters(
         replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
-        max_timesteps=500*30,
+        max_timesteps=500*3000,
         max_timesteps_ep=500,
 
         initial_p=1.0,
@@ -347,7 +347,7 @@ Configs = {
     ),
     'LL_exp400k' : Hyperparameters(
         replay_buffer_size=10000, #TODO: maybe calculate dynamically: steps_episode * episodes_training * num_epochs
-        max_timesteps=500*30,
+        max_timesteps=500*3000,
         max_timesteps_ep=500,
 
         initial_p=1.0,
