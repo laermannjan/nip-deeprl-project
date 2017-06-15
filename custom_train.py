@@ -10,6 +10,7 @@ import gym
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
 import baselines.common.tf_util as U
+import baselines.common.misc_util as mu
 from baselines import logger
 from baselines import deepq
 from baselines.deepq.replay_buffer import ReplayBuffer
@@ -47,6 +48,9 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
 
         episode_rewards = [0.0]
         episode_lengths = [0]
+        mean_ep_rewards = []
+        mean_ep_lens = []
+
         obs = env.reset()
         saved_mean_reward = None
         with tempfile.TemporaryDirectory() as td:
@@ -66,47 +70,49 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
                 episode_rewards[-1] += rew
                 episode_lengths[-1] += 1
 
-                mean_reward = np.mean(episode_rewards[-config.mean_window:])
-                mean_ep_len = np.mean(episode_lengths[-config.mean_window:])
-
-
-                is_solved = t > config.min_t_solved and mean_reward >= config.min_mean_reward
-                if not is_solved:
-                    # Minimize the error in Bellman's equation on a batch sampled from replay buffer
-                    if t > config.learning_delay and t % config.train_freq == 0:
-                        obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(config.minibatch_size)
-                        train(obses_t, actions, rewards, obses_tp1, dones, np.ones_like(rewards))
-                    # Update target network periodically.
-                    if t % config.update_freq == 0:
-                        update_target()
-
-                if config.print_freq is not None and\
-                   done and len(episode_rewards) % config.print_freq == 0:
-                    logger.record_tabular("total steps", t)
-                    logger.record_tabular("episodes", len(episode_rewards) - 1)
-                    logger.record_tabular("mean episode length", round(mean_ep_len, 0))
-                    logger.record_tabular("mean episode reward", round(mean_reward, 1))
-                    logger.record_tabular("% time spent exploring",
-                                          int(100 * exploration_schedule.value(t)))
-                    logger.dump_tabular()
-
-                if config.checkpoint_freq is not None and\
-                   t > config.learning_delay and t % config.checkpoint_freq == 0:
-                    if saved_mean_reward is None or mean_reward > saved_mean_reward:
-                        if config.print_freq is not None:
-                            logger.log('Saving model due to mean reward increase: {} -> {}'\
-                                       .format(saved_mean_reward, mean_reward))
-                        U.save_state(model_file)
-                        saved_mean_reward = mean_reward
-                        model_saved = True
-
-                if is_solved:
-                    break
-
                 if done:
                     obs = env.reset()
+
+                    mean_ep_rewards.append(np.mean(episode_rewards[-config.mean_window:]))
+                    mean_ep_lens.append(np.mean(episode_lengths[-config.mean_window:]))
+
+                    is_solved = t > config.min_t_solved and\
+                                mean_ep_rewards[-1] >= config.min_mean_reward
+                    if not is_solved:
+                        # Minimize the error in Bellman's equation on a batch sampled from replay buffer
+                        if t > config.learning_delay and t % config.train_freq == 0:
+                            obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(config.minibatch_size)
+                            train(obses_t, actions, rewards, obses_tp1, dones, np.ones_like(rewards))
+                        # Update target network periodically.
+                        if t % config.update_freq == 0:
+                            update_target()
+
+                    if config.print_freq and\
+                       len(episode_rewards) % config.print_freq == 0:
+                        logger.record_tabular("total steps", t)
+                        logger.record_tabular("episodes", len(episode_rewards) - 1)
+                        logger.record_tabular("mean episode length", round(mean_ep_len, 0))
+                        logger.record_tabular("mean episode reward", round(mean_reward, 1))
+                        logger.record_tabular("% time spent exploring",
+                                              int(100 * exploration_schedule.value(t)))
+                        logger.dump_tabular()
+
+                    if config.checkpoint_freq and\
+                        t > config.learning_delay and t % config.checkpoint_freq == 0:
+                        if saved_mean_reward is None or mean_ep_rewards[-1] > saved_mean_reward:
+                            if config.print_freq:
+                                logger.log('Saving model due to mean reward increase: {} -> {}'\
+                                           .format(saved_mean_reward, mean_ep_rewards[-1]))
+                            U.save_state(model_file)
+                            saved_mean_reward = mean_ep_rewards[-1]
+                            model_saved = True
+
                     episode_rewards.append(0)
                     episode_lengths.append(0)
+
+
+                    if is_solved:
+                        break
 
             if model_saved:
                 U.load_state(model_file)
