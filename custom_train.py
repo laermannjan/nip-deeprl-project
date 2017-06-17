@@ -20,9 +20,10 @@ from baselines.deepq.simple import ActWrapper
 from configs import Configs
 
 
-def train(env, config_name, pickle_root, exp_name, num_cpu=8):
+def train(env_name, config_name, pickle_root, exp_name, num_cpu=8):
     config = Configs[config_name]
-    env = gym.make(env).env
+    env = gym.make(env_name)
+    env._max_episode_steps = config.max_timesteps_ep
     model = deepq.models.mlp(config.num_nodes)
     with U.make_session(num_cpu):
         def make_obs_ph(name):
@@ -61,7 +62,6 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
                 action = act(obs[None], update_eps=exploration_schedule.value(t))[0]
                 new_obs, rew, done, _ = env.step(action)
                 rew = rew if not done else config.done_reward
-                done = done if episode_lengths[-1] != config.max_timesteps_ep else True
 
                 # Store transition in the replay buffer.
                 replay_buffer.add(obs, action, rew, new_obs, float(done))
@@ -91,8 +91,8 @@ def train(env, config_name, pickle_root, exp_name, num_cpu=8):
                        len(episode_rewards) % config.print_freq == 0:
                         logger.record_tabular("total steps", t)
                         logger.record_tabular("episodes", len(episode_rewards) - 1)
-                        logger.record_tabular("mean episode length", round(mean_ep_len, 0))
-                        logger.record_tabular("mean episode reward", round(mean_reward, 1))
+                        logger.record_tabular("mean episode length", round(mean_ep_lens[-1], 0))
+                        logger.record_tabular("mean episode reward", round(mean_ep_rewards[-1], 1))
                         logger.record_tabular("% time spent exploring",
                                               int(100 * exploration_schedule.value(t)))
                         logger.dump_tabular()
