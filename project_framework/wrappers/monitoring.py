@@ -31,6 +31,7 @@ class Monitor(gym.Wrapper):
         self._update_func = None
 
         self.augmented_reward = None
+        self.config_name = None
 
         self._start(directory, video_callable, force, resume,
                     write_upon_reset, uid, mode)
@@ -38,7 +39,7 @@ class Monitor(gym.Wrapper):
     def _step(self, action):
         self._before_step(action)
         obs, rew, done, info = self.env.step(action)
-        rew = self.reward(rew)
+        rew = self.reward(rew, done)
         done = self._after_step(obs, rew, done, info)
 
         return obs, rew, done, info
@@ -125,6 +126,7 @@ class Monitor(gym.Wrapper):
                 'videos': [(os.path.basename(v), os.path.basename(m))
                            for v, m in self.videos],
                 'env_info': self._env_info(),
+                'config': self.config_name,
 
             }, f, default=json_encode_np)
 
@@ -148,13 +150,13 @@ class Monitor(gym.Wrapper):
     def _record_exploration(self, eps):
         self.stats_recorder.update_exploration(eps)
 
-    def reward(self, reward):
+    def reward(self, reward, done):
         if self.augmented_reward is None:
             return reward
-        return self._reward(reward)
+        return self._reward(reward, done)
 
-    def _reward(self, reward):
-        if self.env.done:
+    def _reward(self, reward, done):
+        if done:
             return self.augmented_reward
         return reward
 
@@ -176,10 +178,10 @@ class Monitor(gym.Wrapper):
     def register_update(self, update_func):
         self._update_func = update_func
 
-    def act(self, obs, eps):
+    def act(self, obs, update_eps):
         assert self._act_func
-        self._record_exploration(eps)
-        self._act_func(obs, eps)
+        self._record_exploration(update_eps)
+        self._act_func(obs, update_eps=update_eps)
 
     def train(self, obs_t, action, reward, obs_tp1, done, weight):
         td_errors = self._train_func(obs_t, action, reward, obs_tp1, done, weight)

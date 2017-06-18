@@ -36,7 +36,9 @@ class CustomTrainer(Trainer):
                       write_upon_reset=True, # as this writes JSON files, might be really slow!
                       uid=None, #uses os.getpid() to create file suffix
                       mode='training')
-        env.set_augmented_reward(config.done_reward)
+        if config.done_reward is not None:
+            env.set_augmented_reward(config.done_reward)
+        env.config_name = self.config_name
         model = deepq.models.mlp(config.num_nodes)
 
         with U.make_session(self.num_cpu):
@@ -69,7 +71,8 @@ class CustomTrainer(Trainer):
                 model_file = os.path.join(td, 'model')
                 for t in range(config.max_timesteps):
                     # Take action and update exploration to the newest value
-                    action = env.act(obs[None], update_eps=exploration_schedule.value(t))[0]
+                    action = act(obs[None], update_eps=exploration_schedule.value(t))[0]
+                    env._record_exploration(exploration_schedule.value(t))
                     new_obs, rew, done, info = env.step(action)
                     # Store transition in the replay buffer.
                     replay_buffer.add(obs, action, rew, new_obs, float(done))
@@ -92,11 +95,12 @@ class CustomTrainer(Trainer):
                                 saved_mean_reward = env.get_current_mean_reward()
                                 model_saved = True
 
-                        if not self.solved(t, config):
+                        if not self.solved(env, t, config):
                             # Minimize the error in Bellman's equation on a batch sampled from replay buffer
                             if t > config.learning_delay and t % config.train_freq == 0:
                                 obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(config.minibatch_size)
-                                env.train(obses_t, actions, rewards, obses_tp1, dones, np.ones_like(rewards))
+                                td_errors = train(obses_t, actions, rewards, obses_tp1, dones, np.ones_like(rewards))
+                                env._record_errors(td_errors)
                             # Update target network periodically.
                             if t % config.update_freq == 0:
                                 env.update_target()
@@ -131,5 +135,5 @@ class CustomTrainer(Trainer):
                               int(100 * exploration_schedule.value(t)))
         logger.dump_tabular()
 
-    def solved(self, t, config):
+    def solved(self, env, t, config):
          return t > config.min_t_solved and env.get_current_mean_reward() >= config.min_mean_reward
