@@ -34,6 +34,10 @@ if __name__ == '__main__':
                         type=int,
                         default=1,
                         help='Amount of times an experiment should be repeated.')
+    parser.add_argument('--enable-videos',
+                        action='store_true',
+                        dest='enable_videos',
+                        help='Toggle to turn on video capturing.')
     parser.add_argument('--dir',
                         action='store',
                         type=str,
@@ -64,6 +68,7 @@ if __name__ == '__main__':
                                     config_name=config_name,
                                     root_dir=args.root_dir,
                                     exp_name=exp_name,
+                                    videos_enabled=args.enable_videos,
                                     num_cpu=args.num_cpu)
             trainer.train()
             U.reset()
