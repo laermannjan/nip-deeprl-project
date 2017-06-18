@@ -23,18 +23,19 @@ from project_framework.training import Trainer
 from project_framework.wrappers import Monitor
 
 class CustomTrainer(Trainer):
-    def __init__(self, env_id, config_name, pickle_root, exp_name, is_solved_func=None, num_cpu=8):
-        super().__init__(env_id, config_name, pickle_root, exp_name)
+    def __init__(self, env_id, config_name, root_dir, exp_name, videos_enabled=False, is_solved_func=None, num_cpu=8):
+        super().__init__(env_id, config_name, root_dir, exp_name)
         self.num_cpu = num_cpu
         self.is_solved_func = is_solved_func
+        self.videos_enabled = videos_enabled
 
     def _train(self):
         config = Configs[self.config_name]
         env = gym.make(self.env_id)
         env._max_episode_steps = config.max_timesteps_ep
-        env = Monitor(env, directory=self.exp_name, video_callable=False, force=True,
+        env = Monitor(env, directory=self.root_dir, video_callable=self.videos_enabled, force=True,
                       write_upon_reset=True, # as this writes JSON files, might be really slow!
-                      uid=None, #uses os.getpid() to create file suffix
+                      uid=self.exp_name, 
                       mode='training')
         if config.done_reward is not None:
             env.set_augmented_reward(config.done_reward)
@@ -71,8 +72,9 @@ class CustomTrainer(Trainer):
                 model_file = os.path.join(td, 'model')
                 for t in range(config.max_timesteps):
                     # Take action and update exploration to the newest value
-                    action = act(obs[None], update_eps=exploration_schedule.value(t))[0]
-                    env._record_exploration(exploration_schedule.value(t))
+                    eps = exploration_schedule.value(t)
+                    action = act(obs[None], update_eps=eps)[0]
+                    env._record_exploration(eps)
                     new_obs, rew, done, info = env.step(action)
                     # Store transition in the replay buffer.
                     replay_buffer.add(obs, action, rew, new_obs, float(done))
@@ -83,7 +85,7 @@ class CustomTrainer(Trainer):
                         # Log to console
                         if config.print_freq and\
                             len(env.get_mean_episode_rewards()) % config.print_freq == 0:
-                            self.log_timestamp()
+                            self._log_timestamp(env, eps)
                         # Create Checkpoint
                         if config.checkpoint_freq and\
                            t > config.learning_delay and t % config.checkpoint_freq == 0:
@@ -116,7 +118,7 @@ class CustomTrainer(Trainer):
                     }
 
                     exp_dir = '{}_{}'.format(env.spec.id, self.exp_name)
-                    pickle_dir = os.path.join(self.pickle_root, exp_dir)
+                    pickle_dir = os.path.join(self.root_dir, exp_dir)
                     if not os.path.exists(pickle_dir):
                         os.makedirs(pickle_dir)
                         pickle_fname = '{}_{}.pkl'\
@@ -126,13 +128,12 @@ class CustomTrainer(Trainer):
                         logger.log("Saving model as {}".format(pickle_fname))
                     ActWrapper(act, act_params).save(os.path.join(pickle_dir, pickle_fname))
 
-    def _log_timestamp(self, env):
+    def _log_timestamp(self, env, eps):
         logger.record_tabular("total steps", env.get_total_steps())
         logger.record_tabular("total episodes", len(env.get_episode_lengths()))
         logger.record_tabular("mean episode length", env.get_mean_episode_lengths()[-1])
         logger.record_tabular("mean episode reward", env.get_current_mean_reward())
-        logger.record_tabular("% time spent exploring",
-                              int(100 * exploration_schedule.value(t)))
+        logger.record_tabular("% time spent exploring", int(100 * eps))
         logger.dump_tabular()
 
     def solved(self, env, t, config):

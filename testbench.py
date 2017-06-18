@@ -6,6 +6,7 @@ from baselines import logger
 import baselines.common.tf_util as U
 
 from configs import Configs
+from project_framework.training import CustomTrainer
 
 
 
@@ -27,13 +28,16 @@ if __name__ == '__main__':
                         metavar='CONFIG',
                         type=str,
                         help='Name of config from configs.py.')
-    parser.add_argument('--simple',
-                        action='store_true',
-                        help='Use simple trainer instead of custom.')
+    parser.add_argument('--repeat',
+                        action='store',
+                        dest='repeat',
+                        type=int,
+                        default=1,
+                        help='Amount of times an experiment should be repeated.')
     parser.add_argument('--dir',
                         action='store',
                         type=str,
-                        dest='pickle_root',
+                        dest='root_dir',
                         default='experiments',
                         help='Root directory for this experiment.')
     parser.add_argument('--cores',
@@ -49,14 +53,17 @@ if __name__ == '__main__':
                         default=datetime.datetime.today().strftime('%Y-%m-%d-%H-%M'),
                         help='Name of this experiment.')
     args = parser.parse_args()
-    if args.simple:
-        from train import train
-    else:
-        from custom_train import train as train
-
     for i, config_name in enumerate(args.configs):
         logger.log('#'*35 + '\n' +
                    'Performing [{}/{}] experiments...\n'.format(i+1, len(args.configs)) +
                    '#'*35)
-        train(args.env, config_name, args.pickle_root, args.exp_name, args.num_cpu)
-        U.reset()
+        for run in range(args.repeat):
+            logger.log('::: Performing Run [{}/{}]...\n '.format(run+1, args.repeat))
+            exp_name = '{}_{}_{}_{}'.format(args.env, config_name, args.exp_name, run)
+            trainer = CustomTrainer(env_id=args.env,
+                                    config_name=config_name,
+                                    root_dir=args.root_dir,
+                                    exp_name=exp_name,
+                                    num_cpu=args.num_cpu)
+            trainer.train()
+            U.reset()

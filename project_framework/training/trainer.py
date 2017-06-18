@@ -15,10 +15,10 @@ from configs import Configs
 
 class Trainer:
     __metaclass__ = abc.ABCMeta
-    def __init__(self, env_id, config_name, pickle_root, exp_name):
+    def __init__(self, env_id, config_name, root_dir, exp_name):
         self.env_id = env_id
         self.config_name = config_name
-        self.pickle_root = pickle_root
+        self.root_dir = root_dir
         self.exp_name = exp_name
 
     @abc.abstractmethod
@@ -29,8 +29,8 @@ class Trainer:
         return self._train()
 
 class SimpleTrainer(Trainer):
-    def __init__(self, env_id, config_name, pickle_root, exp_name, is_solved_func=None, num_cpu=8):
-        super().__init__(env_id, config_name, pickle_root, exp_name)
+    def __init__(self, env_id, config_name, root_dir, exp_name, is_solved_func=None, num_cpu=8):
+        super().__init__(env_id, config_name, root_dir, exp_name)
         self.num_cpu = num_cpu
         self.is_solved_func = is_solved_func
 
@@ -57,7 +57,7 @@ class SimpleTrainer(Trainer):
             callback=is_solved_func
         )
         exp_dir = '{}_{}'.format(env.spec.id, self.exp_name)
-        pickle_dir = os.path.join(self.pickle_root, exp_dir)
+        pickle_dir = os.path.join(self.root_dir, exp_dir)
         if not os.path.exists(pickle_dir):
             os.makedirs(pickle_dir)
         pickle_fname = '{}_{}.pkl'\

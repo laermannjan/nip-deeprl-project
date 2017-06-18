@@ -10,7 +10,7 @@ from baselines import logger
 
 from project_framework.monitoring import stats_recorder
 
-FILE_PREFIX = 'BLA'
+FILE_PREFIX = 'LOG'
 MANIFEST_PREFIX = FILE_PREFIX + '.manifest'
 
 class Monitor(gym.Wrapper):
