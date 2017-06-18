@@ -64,7 +64,7 @@ if __name__ == '__main__':
         for run in range(args.repeat):
             logger.log('::: Performing Run [{}/{}]...\n '.format(run+1, args.repeat))
             exp_name = '{}_{}_{}_{}'.format(args.env, config_name, args.exp_name, run)
-            videos_enabled = args.enable_videos if run == 0 else False
+            videos_enabled = None if run == 0 and args.enable_videos else False
             trainer = CustomTrainer(env_id=args.env,
                                     config_name=config_name,
                                     root_dir=args.root_dir,
