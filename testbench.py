@@ -54,7 +54,7 @@ if __name__ == '__main__':
                         action='store',
                         type=str,
                         dest='exp_name',
-                        default=datetime.datetime.today().strftime('%Y-%m-%d-%H-%M'),
+                        default=os.getpid(),
                         help='Name of this experiment.')
     args = parser.parse_args()
     for i, config_name in enumerate(args.configs):
@@ -63,12 +63,12 @@ if __name__ == '__main__':
                    '#'*35)
         for run in range(args.repeat):
             logger.log('::: Performing Run [{}/{}]...\n '.format(run+1, args.repeat))
-            exp_name = '{}_{}_{}_{}'.format(args.env, config_name, args.exp_name, run)
+            root_dir = os.path.join(args.root_dir, args.env, config_name)
             videos_enabled = None if run == 0 and args.enable_videos else False
             trainer = CustomTrainer(env_id=args.env,
                                     config_name=config_name,
-                                    root_dir=args.root_dir,
-                                    exp_name=exp_name,
+                                    root_dir=root_dir,
+                                    exp_name=args.exp_name,
                                     videos_enabled=videos_enabled,
                                     num_cpu=args.num_cpu)
             trainer.train()

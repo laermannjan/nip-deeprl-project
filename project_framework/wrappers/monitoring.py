@@ -1,4 +1,4 @@
-import os, json, logging
+import os, json
 
 import gym
 from gym import error, version
@@ -101,9 +101,9 @@ class Monitor(gym.Wrapper):
         self.enabled = True
         self.directory = os.path.abspath(directory)
         self.file_prefix = FILE_PREFIX
-        self.file_infix = '{}_{}'.format(self._monitor_id, uid if uid else os.getpid())
+        self.file_infix = '{}_{}'.format(uid if uid else os.getpid(), self._monitor_id)
 
-        self.stats_recorder = stats_recorder.StatsRecorder(directory, '{}.episode_batch.{}'
+        self.stats_recorder = stats_recorder.StatsRecorder(directory, '{}.run.{}'
                                                            .format(self.file_prefix, self.file_infix))
 
         self.write_upon_reset = write_upon_reset
@@ -119,7 +119,7 @@ class Monitor(gym.Wrapper):
         self.stats_recorder.flush()
 
         path = os.path.join(self.directory, '{}.manifest.{}.json'
-                            .format(self.file_prefix, self.file_infix))
+                            .format(self.file_prefix, os.getpid()))
         with atomic_write.atomic_write(path) as f:
             json.dump({
                 'stats': os.path.basename(self.stats_recorder.path),

@@ -33,8 +33,9 @@ class CustomTrainer(Trainer):
         config = Configs[self.config_name]
         env = gym.make(self.env_id)
         env._max_episode_steps = config.max_timesteps_ep
-        env = Monitor(env, directory=self.root_dir, video_callable=self.videos_enabled, force=True,
-                      write_upon_reset=True, # as this writes JSON files, might be really slow!
+        env = Monitor(env, directory=self.root_dir, video_callable=self.videos_enabled, force=False,
+                      resume=True,
+                      write_upon_reset=False, # as this writes JSON files, might be really slow!
                       uid=self.exp_name, 
                       mode='training')
         if config.done_reward is not None:
@@ -66,11 +67,14 @@ class CustomTrainer(Trainer):
             update_target()
 
             obs = env.reset()
-            saved_mean_reward = None
+            best_mean_reward = None
             with tempfile.TemporaryDirectory() as td:
-                model_saved = False
-                model_file = os.path.join(td, 'model')
+                best_model_saved = False
+                final_model_saved = False
+                best_model_file = os.path.join(td, 'best_model')
+                final_model_file = os.path.join(td, 'final_model')
                 for t in range(config.max_timesteps):
+                # for t in range(int(1e5)):
                     # Take action and update exploration to the newest value
                     eps = exploration_schedule.value(t)
                     action = act(obs[None], update_eps=eps)[0]
@@ -80,22 +84,24 @@ class CustomTrainer(Trainer):
                     replay_buffer.add(obs, action, rew, new_obs, float(done))
                     obs = new_obs
 
+
+                    # Create Checkpoint
+                    if config.checkpoint_freq and\
+                       t > config.learning_delay and t % config.checkpoint_freq == 0:
+                        if best_mean_reward is None or env.get_current_mean_reward() > best_mean_reward:
+                            if config.print_freq:
+                                logger.log('Saving model due to mean reward increase: {} -> {}'\
+                                           .format(best_mean_reward, env.get_current_mean_reward()))
+                            U.save_state(best_model_file)
+                            best_mean_reward = env.get_current_mean_reward()
+                            best_model_saved = True
+
                     if done:
                         obs = env.reset()
                         # Log to console
                         if config.print_freq and\
                             len(env.get_mean_episode_rewards()) % config.print_freq == 0:
                             self._log_timestamp(env, eps)
-                        # Create Checkpoint
-                        if config.checkpoint_freq and\
-                           t > config.learning_delay and t % config.checkpoint_freq == 0:
-                            if saved_mean_reward is None or env.get_current_mean_reward() > saved_mean_reward:
-                                if config.print_freq:
-                                    logger.log('Saving model due to mean reward increase: {} -> {}'\
-                                               .format(saved_mean_reward, env.get_current_mean_reward()))
-                                U.save_state(model_file)
-                                saved_mean_reward = env.get_current_mean_reward()
-                                model_saved = True
 
                         if not self.solved(env, t, config):
                             # Minimize the error in Bellman's equation on a batch sampled from replay buffer
@@ -105,28 +111,33 @@ class CustomTrainer(Trainer):
                                 env._record_errors(td_errors)
                             # Update target network periodically.
                             if t % config.update_freq == 0:
-                                env.update_target()
+                                update_target()
                         else:
                             break
 
-                if model_saved:
-                    U.load_state(model_file)
-                    act_params = {
-                        'make_obs_ph' : make_obs_ph,
-                        'num_actions' : env.action_space.n,
-                        'q_func' : model,
-                    }
+                if t > config.learning_delay:
+                    U.save_state(final_model_file)
+                    final_model_saved = True
+                act_params = {
+                    'make_obs_ph' : make_obs_ph,
+                    'num_actions' : env.action_space.n,
+                    'q_func' : model,
+                }
+                # if final_model_saved:
+                #     U.load_state(final_model_file)
+                #     self.pickle_agent(act, act_params, 'final')
+                # if best_model_saved:
+                #     U.load_state(best_model_file)
+                #     pickle_name = 'highest_reward_{}'.format(best_mean_reward)
+                #     self.pickle_agent(act, act_params, pickle_name)
 
-                    exp_dir = '{}_{}'.format(env.spec.id, self.exp_name)
-                    pickle_dir = os.path.join(self.root_dir, exp_dir)
-                    if not os.path.exists(pickle_dir):
-                        os.makedirs(pickle_dir)
-                        pickle_fname = '{}_{}.pkl'\
-                                       .format(env.spec.id, self.config_name)
-                    if config.print_freq is not None:
-                        logger.log("Restored model with mean reward: {}".format(saved_mean_reward))
-                        logger.log("Saving model as {}".format(pickle_fname))
-                    ActWrapper(act, act_params).save(os.path.join(pickle_dir, pickle_fname))
+    def pickle_agent(self, act, act_params, name):
+        pickle_dir = os.path.join(self.root_dir, 'saved_agents')
+        if not os.path.exists(pickle_dir):
+            os.makedirs(pickle_dir)
+        fname = 'LOG.agent.{}.pkl'.format(name)
+        logger.log('Saving agent as {}.'.format(fname))
+        ActWrapper(act, act_params).save(os.path.join(pickle_dir, fname))
 
     def _log_timestamp(self, env, eps):
         logger.record_tabular("total steps", env.get_total_steps())
