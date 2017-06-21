@@ -39,7 +39,7 @@ Configs = {
         max_timesteps=100000,
         max_timesteps_ep=500,
 
-        initial_p=1.0,
+        initial_p=991.0,
         final_p=0.02,
 
         exploration_fraction=0.1,
