@@ -25,14 +25,17 @@ class DualMonitor(gym.Wrapper):
         self._time_offset = None
         self._total_steps = None
         self._episode_id = None
-        self._old_obs = None
         # monitor state
         self._episode_rewards = []
         self._episode_lengths = []
         self._episode_end_times = []
         self._timestep_explorations = []
         self._epoche_td_errors = []
-        self._full_replay_buffer = []
+        # replay buffer
+        self._observations = []
+        self._actions = []
+        self._rewards = []
+        self._dones = []
         # extras
         self._video_recorder = None
         self._augmented_reward = None
@@ -59,7 +62,6 @@ class DualMonitor(gym.Wrapper):
 
     def _reset(self):
         obs = self.env.reset()
-        self._old_obs = obs
         # recompute temporary state if needed
         if self._time_offset is None:
             self._time_offset = time.time()
@@ -100,7 +102,11 @@ class DualMonitor(gym.Wrapper):
         self._video_recorder.capture_frame()
 
         # save what gets pushed into the replay buffer
-        self._full_replay_buffer.append((self._old_obs, action, rew, obs, float(done)))
+        self._observations.append(obs)
+        self._actions.append(action)
+        self._rewards.append(rew)
+        self._dones.append(float(done))
+
         return (obs, rew, done, info)
 
     def get_state(self):
@@ -149,7 +155,10 @@ class DualMonitor(gym.Wrapper):
                      episode_rewards=np.array(self._episode_rewards),
                      episode_end_times=np.array(self._episode_end_times),
                      td_errors=np.array(self._epoche_td_errors),
-                     full_replay_buffer=np.array(self._full_replay_buffer)
+                     observations=np.array(self._observations),
+                     actions=np.array(self._actions),
+                     rewards=np.array(self._rewards),
+                     dones=np.array(self._dones)
                      )
 
 
