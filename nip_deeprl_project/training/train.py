@@ -20,7 +20,7 @@ from baselines.common.misc_util import (
     RunningAvg,
 )
 from baselines.common.schedules import LinearSchedule
-from project_framework.wrappers import DualMonitor
+from nip_deeprl_project.wrappers import DualMonitor
 
 
 
@@ -29,10 +29,8 @@ def make_env(game_name, args, **kwargs):
     env = gym.make(game_name)
     augmented_env = env
     for attr, val in kwargs.items():
-        print('hooooooooooo', attr, val)
         if val is not None:
             setattr(augmented_env, attr, val)
-    print('hiiiiiiiiiiiiiiiiiiiiiiiii', augmented_env._max_episode_steps)
     monitored_env = DualMonitor(augmented_env, run=args.run_num,
                                 directory=args.save_dir,
                                 write_upon_reset=args.write_upon_reset,

@@ -3,8 +3,8 @@ import time
 import argparse
 from gym import envs
 from baselines.common.misc_util import boolean_flag
-from project_framework.training import train
-from dummy import Configs
+from nip_deeprl_project.training import train
+from configs import Configs
 
 def parse_args():
     parser = argparse.ArgumentParser("DQN experiments for OpenAI Gym games")

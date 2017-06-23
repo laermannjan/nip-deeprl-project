@@ -11,11 +11,12 @@ setup(name='project_framework',
       url='http://github.com/laermannjan/nip-deeprl-project',
       author='Jan Laermann',
       author_email='laermannjan@gmail.com',
-      packages=['project_framework'],
+      packages=['nip_deeprl_project'],
       zip_safe=False,
       install_requires=[
           'numpy',
           'gym',
-          'baselines'
+          'baselines',
+          'tensorflow'
       ]
 )
