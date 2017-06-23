@@ -1,10 +1,18 @@
 import os
 import time
 import argparse
-from gym import envs
+import random
+import copy
+
+from gym import envs, error
+
 from baselines.common.misc_util import boolean_flag
+import baselines.common.tf_util as U
+from baselines import logger
+
 from nip_deeprl_project.training import train
-from configs import Configs
+from nip_deeprl_project.utils import write_manifest
+from dummy import Configs
 
 def parse_args():
     parser = argparse.ArgumentParser("DQN experiments for OpenAI Gym games")
@@ -15,6 +23,7 @@ def parse_args():
     parser.add_argument("--replay-buffer-size", type=int, default=int(1e6), help="replay buffer size")
     parser.add_argument("--lr", type=float, default=1e-4, help="learning rate for Adam optimizer")
     parser.add_argument("--num-steps", type=int, default=int(2e8), help="total number of steps to run the environment for")
+    parser.add_argument("--num-episodes", type=int, default=None, help="total number of episodes to run the environment for. this overwrites num_steps")
     parser.add_argument("--batch-size", type=int, default=32, help="number of transitions to optimize at the same time")
     parser.add_argument("--learning-freq", type=int, default=4, help="number of iterations between every optimization step")
     parser.add_argument("--target-update-freq", type=int, default=40000, help="number of iterations between every target network update")
@@ -44,37 +53,52 @@ def parse_args():
     # Config
     parser.add_argument("--config", type=str, nargs='+', choices=Configs.keys(), default=None, help="define a config by name from configs.py which may overwrite other arguments")
     parser.add_argument("--repeat", type=int, default=1, help="number of times the same experiment is being repeated. if multiple configs are defined, each is being repeated individually.")
+    parser.add_argument("--uid", type=str, nargs='+', default=None, help="UNIQUE identifier for each run of an experiment even across sessions")
     return parser.parse_args()
 
 def _load_config(args, config):
     for attr, val in Configs[config].items():
         setattr(args, attr, val)
 
+
 def load_config(args, config):
+    env_name = Configs[config]['env']
     # Load defaults
-    if Configs[config]['env'] == 'Cartpole-v0':
+    if  env_name == 'Cartpole-v0':
         _load_config(args, 'CP_basic')
-    elif Configs[config]['env'] == 'LunarLander-v2':
-        _load_config(args, 'LL_basi')
-    elif Configs[config]['env'] == 'Acrobot-v1':
+    elif env_name == 'LunarLander-v2':
+        _load_config(args, 'LL_basic')
+    elif env_name == 'Acrobot-v1':
         _load_config(args, 'AB_basic')
     # Load modifications
     _load_config(args, config)
     # create subdir for config
-    setattr(args, 'save_dir', os.path.join(args.save_dir, config))
+    setattr(args, 'save_dir', os.path.join(args.save_dir, env_name, config))
+    # Set default uid
+    if args.uid is None:
+        args.uid = str(os.getpid())
 
 if __name__ == '__main__':
     orig_args = parse_args()
 
     if orig_args.config is not None:
+        # Iterate through all configs
         for config in orig_args.config:
-            args = orig_args
-            load_config(orig_args, config)
-            for _ in range(orig_args.repeat):
-                # Train experiment
+            config_args = copy.deepcopy(orig_args)
+            load_config(config_args, config)
+            write_manifest(config_args, os.path.join(config_args.save_dir, config_args.uid), name='experiment')
+            # Repeat experiments with a given config as often as specified
+            for i in range(orig_args.repeat):
+                args = copy.deepcopy(config_args)
+                setattr(args, 'save_dir', os.path.join(args.save_dir, args.uid, str(i)))
+                logger.log('Starting run: {}'.format(i))
                 train(args)
+                U.reset()
     else:
         args = orig_args
         setattr(args, 'save_dir', os.path.join(args.save_dir, 'TEST', str(time.time())))
-        for _ in range(orig_args.repeat):
+        for i in range(orig_args.repeat):
+            logger.log('Starting run: {}'.format(i))
+            write_manifest(args, args.save_dir)
             train(args)
+            U.reset()

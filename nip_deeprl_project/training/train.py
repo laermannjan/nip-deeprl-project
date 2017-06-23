@@ -1,17 +1,19 @@
 import argparse
-import gym
 import numpy as np
 import os
-import tensorflow as tf
 import tempfile
 import time
 import itertools
 
-import baselines.common.tf_util as U
+import tensorflow as tf
+
+import gym
 
 from baselines import logger
 from baselines import deepq
 from baselines.deepq.replay_buffer import ReplayBuffer
+import baselines.common.tf_util as U
+from baselines.common.schedules import LinearSchedule
 from baselines.common.misc_util import (
     pickle_load,
     pretty_eta,
@@ -19,9 +21,13 @@ from baselines.common.misc_util import (
     set_global_seeds,
     RunningAvg,
 )
-from baselines.common.schedules import LinearSchedule
-from nip_deeprl_project.wrappers import DualMonitor
 
+from nip_deeprl_project.wrappers import DualMonitor
+from nip_deeprl_project.utils import write_manifest
+
+
+MODELS_DIR = 'models'
+PICKLE_DIR = 'agents'
 
 
 
@@ -31,22 +37,24 @@ def make_env(game_name, args, **kwargs):
     for attr, val in kwargs.items():
         if val is not None:
             setattr(augmented_env, attr, val)
-    monitored_env = DualMonitor(augmented_env, run=args.run_num,
+    monitored_env = DualMonitor(augmented_env,
                                 directory=args.save_dir,
                                 write_upon_reset=args.write_upon_reset,
                                 video_callable=args.capture_videos)
     return monitored_env
 
 
-def maybe_save_model(savedir, state):
+def maybe_save_model(savedir, state, pickle_name=None):
     """This function checkpoints the model and state of the training algorithm."""
     if savedir is None:
         return
     start_time = time.time()
-    model_dir = "model-{}".format(state["num_iters"])
-    U.save_state(os.path.join(savedir, model_dir, "saved"))
-    relatively_safe_pickle_dump(state, os.path.join(savedir, 'training_state.pkl.zip'), compression=True)
-    relatively_safe_pickle_dump(state["monitor_state"], os.path.join(savedir, 'monitor_state.pkl'))
+    model_dir = "model.ep{}".format(state["num_iters"])
+    U.save_state(os.path.join(savedir, MODELS_DIR, model_dir, "saved"))
+    if pickle_name is not None:
+        fname = '{}.pkl.zip'.format(pickle_name)
+        relatively_safe_pickle_dump(state, os.path.join(savedir, PICKLE_DIR, fname), compression=True)
+        logger.log('Saved agent as {}.'.format(fname))
     logger.log("Saved model in {} seconds\n".format(time.time() - start_time))
 
 
@@ -59,7 +67,7 @@ def maybe_load_model(savedir):
     found_model = os.path.exists(state_path)
     if found_model:
         state = pickle_load(state_path, compression=True)
-        model_dir = "model-{}".format(state["num_iters"])
+        model_dir = "model.ep{}".format(state["num_iters"])
         U.load_state(os.path.join(savedir, model_dir, "saved"))
         logger.log("Loaded models checkpoint at {} iterations".format(state["num_iters"]))
         return state
@@ -114,7 +122,9 @@ def train(args):
         # Main trianing loop
         for num_iters in itertools.count(num_iters):
             # Take action and store transition in the replay buffer.
-            action = act(np.array(obs)[None], update_eps=exploration.value(num_iters))[0]
+            update_eps = exploration.value(num_iters)
+            action = act(np.array(obs)[None], update_eps=update_eps)[0]
+            env.record_exploration(update_eps)
             new_obs, rew, done, info = env.step(action)
             replay_buffer.add(obs, action, rew, new_obs, float(done))
             obs = new_obs
@@ -132,6 +142,7 @@ def train(args):
                     weights = np.ones_like(rewards)
                 # Minimize the error in Bellman's equation and compute TD-error
                 td_errors = train(obses_t, actions, rewards, obses_tp1, dones, weights)
+                env.record_td_errors(td_errors)
                 # Update the priorities in the replay buffer
                 if args.prioritized:
                     new_priorities = np.abs(td_errors) + args.prioritized_eps
@@ -153,7 +164,10 @@ def train(args):
                     'monitor_state': env.get_state()
                 })
 
-            if info["steps"] > args.num_steps:
+            if args.num_episodes is None:
+                if info["steps"] > args.num_steps:
+                    break
+            elif info['episodes'] > args.num_episodes:
                 break
 
             if done:

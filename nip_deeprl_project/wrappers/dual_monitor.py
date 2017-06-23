@@ -4,12 +4,13 @@ import os
 import json
 
 import gym
-from gym import error, version
+from gym import error
 from gym.monitoring import video_recorder
-from gym.utils import atomic_write
 
 class DualMonitor(gym.Wrapper):
-    def __init__(self, env, directory, run=None, video_callable=None, write_upon_reset=False):
+    VIDEOS_DIR = 'videos'
+
+    def __init__(self, env, directory, video_callable=None, write_upon_reset=False):
         """Adds two qunatities to info returned by every step:
             num_steps: int
                 Number of steps takes so far
@@ -24,24 +25,27 @@ class DualMonitor(gym.Wrapper):
         self._time_offset = None
         self._total_steps = None
         self._episode_id = None
+        self._old_obs = None
         # monitor state
         self._episode_rewards = []
         self._episode_lengths = []
         self._episode_end_times = []
         self._timestep_explorations = []
         self._epoche_td_errors = []
+        self._full_replay_buffer = []
         # extras
         self._video_recorder = None
         self._augmented_reward = None
 
         self.write_upon_reset = write_upon_reset
-        self._start(directory, video_callable, run)
+        self._start(directory, video_callable)
 
-    def _start(self, directory, video_callable, run):
-        self.directory = os.path.abspath(os.path.join(directory, str(os.getpid())))
+    def _start(self, directory, video_callable):
+        self.directory = os.path.abspath(directory)
+        self._video_dir = os.path.join(self.directory, self.__class__.VIDEOS_DIR)
         # Create directory
-        if not os.path.exists(self.directory):
-            os.makedirs(self.directory, exist_ok=True)
+        if not os.path.exists(self._video_dir):
+            os.makedirs(self._video_dir, exist_ok=True)
         # Turn video capturing on if needed and set schedule
         if video_callable is True:
             video_callable = default_video_schedule
@@ -52,10 +56,10 @@ class DualMonitor(gym.Wrapper):
                               .format(type(video_callable), video_callable))
         self.video_callable = video_callable
         # Set common file infix
-        self.file_infix = 'run_{:02}'.format(run if run is not None else 0)
 
     def _reset(self):
         obs = self.env.reset()
+        self._old_obs = obs
         # recompute temporary state if needed
         if self._time_offset is None:
             self._time_offset = time.time()
@@ -91,8 +95,12 @@ class DualMonitor(gym.Wrapper):
         self._total_steps += 1
         info['steps'] = self._total_steps
         info['rewards'] = self._episode_rewards
+        info['episodes'] = self._episode_id  # TODO: episode id always counts from 0 even when a run is continued
 
         self._video_recorder.capture_frame()
+
+        # save what gets pushed into the replay buffer
+        self._full_replay_buffer.append((self._old_obs, action, rew, obs, float(done)))
         return (obs, rew, done, info)
 
     def get_state(self):
@@ -115,7 +123,7 @@ class DualMonitor(gym.Wrapper):
         self._episode_lengths = ed['episode_lengths']
         self._episode_end_times = ed['episode_end_times']
         self._timestep_explorations = ed['timestep_explorations']
-        self._epoche_td_errors = ed['epoch_td_errors']
+        self._epoche_td_errors = ed['epoche_td_errors']
 
 
     def _reset_video_recorder(self):
@@ -125,8 +133,8 @@ class DualMonitor(gym.Wrapper):
 
         self._video_recorder = video_recorder.VideoRecorder(
             env=self.env,
-            base_path=os.path.join(self.directory, 'video.{}.episode_{:06}'
-                                   .format(self.file_infix, self._episode_id)),
+            base_path=os.path.join(self._video_dir, 'video.episode_{:06}'
+                                   .format(self._episode_id)),
             enabled=self._video_enabled()
             )
         self._video_recorder.capture_frame()
@@ -135,20 +143,14 @@ class DualMonitor(gym.Wrapper):
     def _flush(self, force=False):
         if self.write_upon_reset or force:
             # Write stats file
-            fname = 'stats.{}.npz'.format(self.file_infix)
+            fname = 'stats.npz'
             np.savez(os.path.join(self.directory, fname),
                      episode_lengths=np.array(self._episode_lengths),
                      episode_rewards=np.array(self._episode_rewards),
                      episode_end_times=np.array(self._episode_end_times),
-                     td_errors=np.array(self._epoche_td_errors)
+                     td_errors=np.array(self._epoche_td_errors),
+                     full_replay_buffer=np.array(self._full_replay_buffer)
                      )
-            # Write manifest
-            fname = 'manifest.json'
-            with atomic_write.atomic_write(os.path.join(self.directory, fname)) as f:
-                json.dump({
-                    'env_id': self.env.unwrapped.spec.id,
-                    'gym_version': version.VERSION
-                }, f)
 
 
     def record_exploration(self, exploration):
