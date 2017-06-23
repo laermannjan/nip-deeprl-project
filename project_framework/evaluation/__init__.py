@@ -1,1 +1,1 @@
-from project_framework.evaluation.simple_evaluator import SimpleEvaluator
+import project_framework.evaluation.simple_evaluator
