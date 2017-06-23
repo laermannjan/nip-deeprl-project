@@ -53,6 +53,8 @@ def maybe_save_model(savedir, state, pickle_name=None):
     U.save_state(os.path.join(savedir, MODELS_DIR, model_dir, "saved"))
     if pickle_name is not None:
         fname = '{}.pkl.zip'.format(pickle_name)
+        if not os.path.exists(os.path.join(savedir, PICKLE_DIR)):
+            os.makedirs(os.path.join(savedir, PICKLE_DIR), exist_ok=True)
         relatively_safe_pickle_dump(state, os.path.join(savedir, PICKLE_DIR, fname), compression=True)
         logger.log('Saved agent as {}.'.format(fname))
     logger.log("Saved model in {} seconds\n".format(time.time() - start_time))
@@ -117,10 +119,12 @@ def train(args):
         start_time, start_steps = None, None
         steps_per_iter = RunningAvg(0.999)
         iteration_time_est = RunningAvg(0.999)
+        best_mean_rew = None
         obs = env.reset()
 
         # Main trianing loop
         for num_iters in itertools.count(num_iters):
+            pickle_this, pickle_name = False, None
             # Take action and store transition in the replay buffer.
             update_eps = exploration.value(num_iters)
             action = act(np.array(obs)[None], update_eps=update_eps)[0]
@@ -128,6 +132,10 @@ def train(args):
             new_obs, rew, done, info = env.step(action)
             replay_buffer.add(obs, action, rew, new_obs, float(done))
             obs = new_obs
+
+            if best_mean_rew is None or info["rewards"][-100:] > best_mean_rew:
+                best_mean_rew = info["rewards"][-100:]
+
             if done:
                 obs = env.reset()
 
@@ -157,12 +165,28 @@ def train(args):
             start_time, start_steps = time.time(), info["steps"]
 
             # Save the model and training state.
-            if num_iters > 0 and (num_iters % args.save_freq == 0 or info["steps"] > args.num_steps):
-                maybe_save_model(savedir, {
-                    'replay_buffer': replay_buffer,
-                    'num_iters': num_iters,
-                    'monitor_state': env.get_state()
-                })
+            pickle_dict = {
+                    "replay_buffer": replay_buffer,
+                    "num_iters": num_iters,
+                    "monitor_state": env.get_state()
+            }
+
+            if num_iters > 0 and num_iters % args.save_freq == 0:
+                maybe_save_model(args.save_dir,
+                                 pickle_dict,
+                                 pickle_name=None)
+            if info["steps"] > args.num_steps:
+                maybe_save_model(args.save_dir,
+                                 pickle_dict,
+                                 pickle_name='final_step')
+            if args.num_episodes is not None and info["episodes"] == args.num_episodes:
+                maybe_save_model(args.save_dir,
+                                 pickle_dict,
+                                 pickle_name='final_episode')
+            if best_mean_rew < info["rewards"][-100:]:
+                maybe_save_model(args.save_dir,
+                                 pickle_dict,
+                                 pickle_name='best_mean_rew')
 
             if args.num_episodes is None:
                 if info["steps"] > args.num_steps:
