@@ -18,7 +18,7 @@ def parse_args():
     parser = argparse.ArgumentParser("DQN experiments for OpenAI Gym games")
     # Environment
     parser.add_argument("--env", type=str, choices=[spec.id for spec in envs.registry.all()], default="LunarLander-v2", help="name of the game")
-    parser.add_argument("--seed", type=int, default=42, help="which seed to use")
+    parser.add_argument("--seed", type=int, default=0, help="which seed to use")
     # Core DQN parameters
     parser.add_argument("--replay-buffer-size", type=int, default=int(1e6), help="replay buffer size")
     parser.add_argument("--lr", type=float, default=1e-4, help="learning rate for Adam optimizer")
