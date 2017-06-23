@@ -49,7 +49,7 @@ def maybe_save_model(savedir, state, pickle_name=None):
     if savedir is None:
         return
     start_time = time.time()
-    model_dir = "model.ep{}".format(state["num_iters"])
+    model_dir = "model.step{}".format(state["num_iters"])
     U.save_state(os.path.join(savedir, MODELS_DIR, model_dir, "saved"))
     if pickle_name is not None:
         fname = '{}.pkl.zip'.format(pickle_name)
@@ -69,7 +69,7 @@ def maybe_load_model(savedir):
     found_model = os.path.exists(state_path)
     if found_model:
         state = pickle_load(state_path, compression=True)
-        model_dir = "model.ep{}".format(state["num_iters"])
+        model_dir = "model.step{}".format(state["num_iters"])
         U.load_state(os.path.join(savedir, model_dir, "saved"))
         logger.log("Loaded models checkpoint at {} iterations".format(state["num_iters"]))
         return state
@@ -175,11 +175,11 @@ def train(args):
                 maybe_save_model(args.save_dir,
                                  pickle_dict,
                                  pickle_name=None)
-            if info["steps"] > args.num_steps:
+            if info["steps"] == args.num_steps:
                 maybe_save_model(args.save_dir,
                                  pickle_dict,
                                  pickle_name='final_step')
-            if args.num_episodes is not None and info["episodes"] == args.num_episodes:
+            if args.num_episodes is not None and info["episodes"] == args.num_episodes and done:
                 maybe_save_model(args.save_dir,
                                  pickle_dict,
                                  pickle_name='final_episode')
