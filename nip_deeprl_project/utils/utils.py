@@ -13,6 +13,3 @@ def write_manifest(args, directory, name=None):
             'gym_version': gym.version.VERSION,
             'args': vars(args)
         }, f)
-
-def read_stats(fname):
-    pass
