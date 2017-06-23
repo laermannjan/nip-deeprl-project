@@ -76,7 +76,7 @@ def load_config(args, config):
     setattr(args, 'save_dir', os.path.join(args.save_dir, env_name, config))
     # Set default uid
     if args.uid is None:
-        args.uid = str(os.getpid())
+        args.uid = '{}.{:03}'.format(os.getpid(), random.randint(0,int(1e3)))
 
 if __name__ == '__main__':
     orig_args = parse_args()
