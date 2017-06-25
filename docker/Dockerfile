@@ -56,6 +56,6 @@ WORKDIR /root
 # Make py35 default environment
 ENV DEFAULT_ANACONDA_ENV $ANACONDA_ROOT/envs/py35
 ENV PATH $DEFAULT_ANACONDA_ENV/bin:$PATH
+ENV PROJECT_PATH /code/nip-deeprl-project
 
-ENTRYPOINT [ "/bin/bash","-c" ]
-CMD ["bash"]
+ENTRYPOINT ["python", "/code/nip-deeprl-project/testbench.py", "--save-dir", "/code/nip-project"]
