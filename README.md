@@ -149,7 +149,7 @@ All available keys have been defined in `testbench.py` as arguments of the comma
 ```
 An `argument` in `testbench.py` of type `"--argument-name"` gets translated into a `key` in `configs.py` of type `'argument_name'`, note the switch from hyphen to underscore.
 
-### Running an experiment
+### Running an experiment (only use if you do not use the docker container as a service)
 A simple run can now be initiated by `python testbench.py --config AB_test_gamma`.
 Checkout `testbench.py` for all possible arguments to pass, but note that if an argument is defined in the specified config it will take priority!
 Command-line arguments can still be of use if you quickly want to change something for test purposes (but you should not use them for proper experiment evaluation).
