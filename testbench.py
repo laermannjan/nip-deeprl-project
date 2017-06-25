@@ -49,7 +49,6 @@ def parse_args():
     # Monitoring
     boolean_flag(parser, "write-upon-reset", default=False, help="if true results get written to disk after every episode. this might severly slow down the process.")
     boolean_flag(parser, "capture-videos", default=False, help="if true enables video capturing.")
-    parser.add_argument("--run-num", default=None, help="identifies the run number if experiment is run mulitple times.")
     # Config
     parser.add_argument("--config", type=str, nargs='+', choices=Configs.keys(), default=None, help="define a config by name from configs.py which may overwrite other arguments")
     parser.add_argument("--repeat", type=int, default=1, help="number of times the same experiment is being repeated. if multiple configs are defined, each is being repeated individually.")
