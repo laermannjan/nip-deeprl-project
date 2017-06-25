@@ -119,7 +119,7 @@ def train(args):
         start_time, start_steps = None, None
         steps_per_iter = RunningAvg(0.999)
         iteration_time_est = RunningAvg(0.999)
-        best_mean_rew = None
+        best_mean_rew = -float('inf')
         obs = env.reset()
 
         # Main trianing loop
@@ -133,8 +133,8 @@ def train(args):
             replay_buffer.add(obs, action, rew, new_obs, float(done))
             obs = new_obs
 
-            if best_mean_rew is None or info["rewards"][-100:] > best_mean_rew:
-                best_mean_rew = info["rewards"][-100:]
+            if np.mean(info["rewards"][-100:]) > best_mean_rew:
+                best_mean_rew = np.mean(info["rewards"][-100:])
 
             if done:
                 obs = env.reset()
@@ -175,6 +175,10 @@ def train(args):
                 maybe_save_model(args.save_dir,
                                  pickle_dict,
                                  pickle_name=None)
+                if best_mean_rew < np.mean(info["rewards"][-100:]):
+                    maybe_save_model(args.save_dir,
+                                     pickle_dict,
+                                     pickle_name='best_mean_rew')
             if info["steps"] == args.num_steps:
                 maybe_save_model(args.save_dir,
                                  pickle_dict,
@@ -183,10 +187,6 @@ def train(args):
                 maybe_save_model(args.save_dir,
                                  pickle_dict,
                                  pickle_name='final_episode')
-            if best_mean_rew < info["rewards"][-100:]:
-                maybe_save_model(args.save_dir,
-                                 pickle_dict,
-                                 pickle_name='best_mean_rew')
 
             if args.num_episodes is None:
                 if info["steps"] > args.num_steps:
