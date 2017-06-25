@@ -59,12 +59,12 @@ $ docker build -t laermannjan/nip-deeprl-docker:cpu .
 2.Substitute `$REPO_ROOT` by the root directory to you clone of the repo. 
 ##### (Recommended) Use docker container as a service.
 ```bash
-$ docker run --rm -itv $REPO_ROOT:/code laermannjan/nip-deeprl-docker:cpu --config config_name1
+$ docker run --rm -itv $REPO_ROOT/data:/mnt/data laermannjan/nip-deeprl-docker:cpu --config config_name1
 ```
 You can pass the same argumemts you would pass onto testbench.py to the docker container, like we did with `--config config_name1` in the example above. **Important:** make sure you do not change the mount point `/code` and that your repo is named `nip-deeprl-project`.
 ##### Interact with the container
 ```bash
-$ docker run --rm -itv $REPO_ROOT:/code laermannjan/nip-deeprl-docker:cpu /bin/bash
+$ docker run --rm -itv $REPO_ROOT/data:/mnt/data laermannjan/nip-deeprl-docker:cpu /bin/bash
 ```
 This will run the image in a new container and open up an interactive bash entrypoint for you.
 You will be able to access the code of this repo from inside that container at `/code/nip-deeprl-project`.
@@ -76,7 +76,7 @@ Your command line should now look something like this: `(py35) root@382c92f920a0
 
 3. (Not yet implemented) You can also run a jupyter notebook instance as an entrypoint via: 
 ```bash
-docker run --rm -itv  $REPO_ROOT:/code -p 8888:8888 laermannjan/nip-deeprl-docker:cpu
+docker run --rm -itv  $REPO_ROOT/data:/mnt/data -p 8888:8888 laermannjan/nip-deeprl-docker:cpu
 ```
 ## SWIG\_Constant\_randInt Fix
 From [Issue #17](https://github.com/laermannjan/nip-deeprl-project/issues/17)
@@ -151,7 +151,7 @@ Configs = {
 #### Keys
 All available keys have been defined in `testbench.py` as arguments of the command line, e.g.
 ```python
-    parser.add_argument("--env", type=str, choices=[spec.id for spec in envs.registry.all()], default="LunarLander-v2", help="name of the game")
+parser.add_argument("--env", type=str, choices=[spec.id for spec in envs.registry.all()], default="LunarLander-v2", help="name of the game")
 ```
 An `argument` in `testbench.py` of type `"--argument-name"` gets translated into a `key` in `configs.py` of type `'argument_name'`, note the switch from hyphen to underscore.
 
