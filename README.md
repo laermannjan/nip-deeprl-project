@@ -1,11 +1,11 @@
 # Deep Reinforcment Learning Project 2017
 [Deep RL Project Calendar](https://calendar.google.com/calendar/ical/fuc8n5c750pte22c32kgi940ug%40group.calendar.google.com/private-42a8e26f0d1130a135a2a1fd08accb6a/basic.ics)
 
-## Installation
+## Setup
 **Optional**: This project has been packaged as a python pip package (but was not published to PyPI). This makes it possible to run setup.py and use our main facilities (train.py, dual_monitor.py, utils.py, etc.) in other projects.
 
 ### Docker
-Install docker (from [the docker docs](https://docs.docker.com/engine/installation/linux/ubuntu/#install-docker())):
+#### Install docker (from [the docker docs](https://docs.docker.com/engine/installation/linux/ubuntu/#install-docker())):
 1. 
 ```bash
 $ sudo apt-get install \
@@ -43,6 +43,28 @@ $ sudo apt-get install docker-ce
 6. Verify everything works correctly
 ```bash
 $ sudo docker run hello-world
+```
+
+#### Build docker image and run the container
+1. Navigate to the root directory of your clone of this repo. Then run:
+```bash
+$ cd docker
+$ docker build -t laermannjan/nip-deeprl-docker:cpu .
+```
+2. Substitute `$REPO_ROOT` by the root directory to you clone of the repo:
+```bash
+$ docker run -itv $REPO_ROOT:/code laermannjan/nip-deeprl-docker:cpu
+```
+This will run the image in a new container and open up an interactive bash entrypoint for you.
+You will be able to access the code of this repo from inside that container at `/code/nip-deeprl-project`.
+3. Switch to custom conda environment:
+```bash
+$ source activate py35
+```
+Your command line should now look something like this: `(py35) root@382c92f920a0:~#`.
+4. (Not yet implemented) You can also run a jupyter notebook instance as an entrypoint via: 
+```bash
+docker run -itv  $REPO_ROOT:/code -p 8888:8888 laermannjan/nip-deeprl-docker:cpu
 ```
 ## Task Assi800gnments
 - Seonguk  ###
