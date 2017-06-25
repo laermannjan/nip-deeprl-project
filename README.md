@@ -1,17 +1,49 @@
 # Deep Reinforcment Learning Project 2017
 [Deep RL Project Calendar](https://calendar.google.com/calendar/ical/fuc8n5c750pte22c32kgi940ug%40group.calendar.google.com/private-42a8e26f0d1130a135a2a1fd08accb6a/basic.ics)
 
-## Useful findings
-* Video rendering: If `env.render()` is not called, a video will be produces according to the default schedule (from monitoring.py):
+## Installation
+**Optional**: This project has been packaged as a python pip package (but was not published to PyPI). This makes it possible to run setup.py and use our main facilities (train.py, dual_monitor.py, utils.py, etc.) in other projects.
 
-```python
-def capped_cubic_video_schedule(episode_id):  
-    if episode_id < 1000:  
-        return int(round(episode_id ** (1. / 3))) ** 3 == episode_id  
-    else:  
-        return episode_id % 1000 == 0  
+### Docker
+Install docker (from [the docker docs](https://docs.docker.com/engine/installation/linux/ubuntu/#install-docker())):
+1. 
+```bash
+$ sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common
 ```
-Should be resolved by calling `env.render()` per episode.
+
+2. 
+```bash
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+```
+3. Verify that the key fingerprint is `9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88`.
+```
+sudo apt-key fingerprint 0EBFCD88
+
+pub   4096R/0EBFCD88 2017-02-22
+      Key fingerprint = 9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88
+uid                  Docker Release (CE deb) <docker@docker.com>
+sub   4096R/F273FCD8 2017-02-22
+```
+4. 
+```bash
+$ sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+```
+5. 
+```bash
+$ sudo apt-get update
+$ sudo apt-get install docker-ce
+```
+6. Verify everything works correctly
+```bash
+$ sudo docker run hello-world
+```
 ## Task Assi800gnments
 - Seonguk  ###
     * --- 
