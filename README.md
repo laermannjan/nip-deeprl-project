@@ -66,6 +66,28 @@ Your command line should now look something like this: `(py35) root@382c92f920a0
 ```bash
 docker run -itv  $REPO_ROOT:/code -p 8888:8888 laermannjan/nip-deeprl-docker:cpu
 ```
+
+## SWIG\_Constant\_randInt Fix
+From [Issue #17](https://github.com/laermannjan/nip-deeprl-project/issues/17)
+Box2D needs swig3.0 to properly compile.
+Ubuntu 14.10 and above should behave correctly. 14.04 Trusty Tahr does not have swig3.0 in default repositories, therefore we need to make backport repos available 
+According to [Greg Brockman](https://github.com/openai/gym/issues/83#issuecomment-218357232) (these commands remove any installed older versions of Swig):
+
+```bash
+$ echo deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse | sudo tee /etc/apt/sources.list.d/box2d-py-swig.list
+$ apt-get update && install -t trusty-backports swig3.0
+$ apt-get remove swig swig2.0
+$ ln -s /usr/bin/swig3.0 /usr/bin/swig
+```
+
+Additionally we can install a prebuilt binary of Box2D to eliminate another source of compile complications:
+```bash
+# Create conda env with python version 3.3, 3.4 or 3.5
+$ conda create -n py35 python=3.5
+$ source activate py35
+# Install binaries
+$ conda install -c https://conda.anaconda.org/kne pybox2d
+```
 ## Task Assi800gnments
 - Seonguk  ###
     * --- 
