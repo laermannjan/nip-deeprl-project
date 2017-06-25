@@ -51,22 +51,27 @@ $ sudo docker run hello-world
 $ cd docker
 $ docker build -t laermannjan/nip-deeprl-docker:cpu .
 ```
-2. Substitute `$REPO_ROOT` by the root directory to you clone of the repo:
+2.Substitute `$REPO_ROOT` by the root directory to you clone of the repo. 
+##### (Recommended) Use docker container as a service.
 ```bash
-$ docker run -itv $REPO_ROOT:/code laermannjan/nip-deeprl-docker:cpu
+$ docker run --rm -itv $REPO_ROOT:/code laermannjan/nip-deeprl-docker:cpu --config config_name1
+```
+You can pass the same argumemts you would pass onto testbench.py to the docker container, like we did with `--config config_name1` in the example above. **Important:** make sure you do not change the mount point `/code` and that your repo is named `nip-deeprl-project`.
+##### Interact with the container
+```bash
+$ docker run --rm -itv $REPO_ROOT:/code laermannjan/nip-deeprl-docker:cpu /bin/bash
 ```
 This will run the image in a new container and open up an interactive bash entrypoint for you.
 You will be able to access the code of this repo from inside that container at `/code/nip-deeprl-project`.
-3. Switch to custom conda environment:
+Inside you need to switch to custom conda environment:
 ```bash
 $ source activate py35
 ```
 Your command line should now look something like this: `(py35) root@382c92f920a0:~#`.
-4. (Not yet implemented) You can also run a jupyter notebook instance as an entrypoint via: 
+3. (Not yet implemented) You can also run a jupyter notebook instance as an entrypoint via: 
 ```bash
-docker run -itv  $REPO_ROOT:/code -p 8888:8888 laermannjan/nip-deeprl-docker:cpu
+docker run --rm -itv  $REPO_ROOT:/code -p 8888:8888 laermannjan/nip-deeprl-docker:cpu
 ```
-
 ## SWIG\_Constant\_randInt Fix
 From [Issue #17](https://github.com/laermannjan/nip-deeprl-project/issues/17)
 Box2D needs swig3.0 to properly compile.
@@ -154,6 +159,7 @@ Some noteworthy arguments are:
 - `--write-upon-reset` - write intermediary experiment results to fail after each episode. This makes everything more failsave but might slow down the experiment significantly depending on the data-storage connection.
 - `--save-dir` - root of where you want your experiments outputs saved. If you pass a relative path, note that this is relative to from where you called the script, not where the script is located! *Note* per default this outputs to the `data` directory inside your clone of the repo. This makes it easy for you to share (i.e. push your result to github). **IMPORTANT** If you are inside docker, make sure that you either run the script from where it is located (i.e. `cd` to `/code/nip-deeprl-project` and run `python testbench.py ...` there) or specify `-save-dir` to be 
 `/code/nip-deeprl-project/data`.
+
 
 ## Task Assi800gnments
 - Seonguk  ###
