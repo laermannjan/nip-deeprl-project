@@ -12,7 +12,7 @@ from baselines import logger
 
 from nip_deeprl_project.training import train
 from nip_deeprl_project.utils import write_manifest
-from dummy import Configs
+from configs import Configs
 
 def parse_args():
     parser = argparse.ArgumentParser("DQN experiments for OpenAI Gym games")
