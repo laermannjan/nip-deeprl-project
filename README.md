@@ -88,6 +88,73 @@ $ source activate py35
 # Install binaries
 $ conda install -c https://conda.anaconda.org/kne pybox2d
 ```
+
+## How to run experiments
+The main logic is implemented inside the python package.
+A complimentary test script `testbench.py` has been included outside of the package.
+Additionally a complimentary `configs.py` has been included where you can define the setup for your experiments.
+
+### Configs
+You can pass a set of parameters for your experiment via the `--config CONFIG [CONFIG ...]` argument of `testbench.py`.
+In this case `CONFIG` must be the name of a config defined in `conigs.py`, i.e. it must match a `key` in the `Configs` dict inside `configs.py`.
+
+#### Example `configs.py`
+(This is still an [open issue](https://github.com/laermannjan/nip-deeprl-project/issues/13))
+```python
+Configs = {
+    'config_name1': {
+        'env': 'Acrobot-v1',
+        'gamma': 0.99
+        ...
+    },
+    'config_name2: {
+        'env': 'LunarLander-v2',
+        'gamma': 0.01
+        ...
+    },
+    ....
+}
+```
+
+To match our guidelines on how to conduct experiments, `config.py`\'s `Configs` must contain three configs, namely `AB_basic`, `CP_basic` and `LL_basic`. These should define the baseline setting for each game respectively.
+
+#### How to write a config
+A config **must** define the `'env'` key and its value **must** be either `Acrobot-v1`, `Cartpole-v0` or `LunarLander-v1`.
+Other than that you only need (and should) define the parameters you want changed with respect to the baseline config, e.g.:
+
+```python
+Configs = {
+    'AB_Basic': {
+        'env': 'Acrobot-v1',
+        'gamma': 0.99,
+        'arch': [30,30,30]
+    },
+    'AB_test_gamma': {
+        'env': 'Acrobot-v1'
+        'gamma': 0.7
+    }
+        
+}
+```
+
+#### Keys
+All available keys have been defined in `testbench.py` as arguments of the command line, e.g.
+```python
+    parser.add_argument("--env", type=str, choices=[spec.id for spec in envs.registry.all()], default="LunarLander-v2", help="name of the game")
+```
+An `argument` in `testbench.py` of type `"--argument-name"` gets translated into a `key` in `configs.py` of type `'argument_name'`, note the switch from hyphen to underscore.
+
+### Running an experiment
+A simple run can now be initiated by `python testbench.py --config AB_test_gamma`.
+Checkout `testbench.py` for all possible arguments to pass, but note that if an argument is defined in the specified config it will take priority!
+Command-line arguments can still be of use if you quickly want to change something for test purposes (but you should not use them for proper experiment evaluation).
+Some noteworthy arguments are:
+- `--repeat COUNT` - let\'s you specify how often an specific experiment should be repeated to minimise statistical errors.
+- `--capture-videos` - as name suggests turns on video rendering, this will slow down the experiment.
+- `--write-upon-reset` - write intermediary experiment results to fail after each episode. This makes everything more failsave but might slow down the experiment significantly depending on the data-storage connection.
+- `--save-dir` - root of where you want your experiments outputs saved. If you pass a relative path, note that this is relative to from where you called the script, not where the script is located! *Note* per default this outputs to the `data` directory inside your clone of the repo. This makes it easy for you to share (i.e. push your result to github). **IMPORTANT** If you are inside docker, make sure that you either run the script from where it is located (i.e. `cd` to `/code/nip-deeprl-project` and run `python testbench.py ...` there) or specify `-save-dir` to be 
+`/code/nip-deeprl-project/data`.
+
 ## Task Assi800gnments
 - Seonguk  ###
     * --- 
