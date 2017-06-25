@@ -49,7 +49,6 @@ RUN /bin/bash -c "conda create -n py35 python=3.5 && \
         gym[all] \
         baselines"
 
-COPY xorg.conf /usr/share/X11/xorg.conf.d/xorg.conf
 
 WORKDIR /root
 
@@ -58,4 +57,8 @@ ENV DEFAULT_ANACONDA_ENV $ANACONDA_ROOT/envs/py35
 ENV PATH $DEFAULT_ANACONDA_ENV/bin:$PATH
 ENV PROJECT_PATH /code/nip-deeprl-project
 
-ENTRYPOINT ["python", "/code/nip-deeprl-project/testbench.py", "--save-dir", "/code/nip-project"]
+COPY xorg.conf /usr/share/X11/xorg.conf.d/xorg.conf
+COPY . /code
+
+ENTRYPOINT ["python", "/code/testbench.py", "--save-dir", "/mnt/data"]
+
