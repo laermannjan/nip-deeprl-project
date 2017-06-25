@@ -19,6 +19,7 @@ $ sudo apt-get install \
 ```bash
 $ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 ```
+
 3. Verify that the key fingerprint is `9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88`.
 ```
 sudo apt-key fingerprint 0EBFCD88
@@ -28,6 +29,7 @@ pub   4096R/0EBFCD88 2017-02-22
 uid                  Docker Release (CE deb) <docker@docker.com>
 sub   4096R/F273FCD8 2017-02-22
 ```
+
 4. 
 ```bash
 $ sudo add-apt-repository \
@@ -35,11 +37,13 @@ $ sudo add-apt-repository \
    $(lsb_release -cs) \
    stable"
 ```
+
 5. 
 ```bash
 $ sudo apt-get update
 $ sudo apt-get install docker-ce
 ```
+
 6. Verify everything works correctly
 ```bash
 $ sudo docker run hello-world
@@ -51,6 +55,7 @@ $ sudo docker run hello-world
 $ cd docker
 $ docker build -t laermannjan/nip-deeprl-docker:cpu .
 ```
+
 2.Substitute `$REPO_ROOT` by the root directory to you clone of the repo. 
 ##### (Recommended) Use docker container as a service.
 ```bash
@@ -68,6 +73,7 @@ Inside you need to switch to custom conda environment:
 $ source activate py35
 ```
 Your command line should now look something like this: `(py35) root@382c92f920a0:~#`.
+
 3. (Not yet implemented) You can also run a jupyter notebook instance as an entrypoint via: 
 ```bash
 docker run --rm -itv  $REPO_ROOT:/code -p 8888:8888 laermannjan/nip-deeprl-docker:cpu
@@ -108,13 +114,13 @@ In this case `CONFIG` must be the name of a config defined in `conigs.py`, i.e. 
 ```python
 Configs = {
     'config_name1': {
-        'env': 'Acrobot-v1',
-        'gamma': 0.99
+        'key1': 'value1',
+        'key2': value2
         ...
     },
-    'config_name2: {
-        'env': 'LunarLander-v2',
-        'gamma': 0.01
+    'config_name2': {
+        'key1': 'value4',
+        'key3': value3
         ...
     },
     ....
@@ -129,7 +135,7 @@ Other than that you only need (and should) define the parameters you want change
 
 ```python
 Configs = {
-    'AB_Basic': {
+    'AB_basic': {
         'env': 'Acrobot-v1',
         'gamma': 0.99,
         'arch': [30,30,30]
