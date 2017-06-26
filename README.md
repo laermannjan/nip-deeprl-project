@@ -166,6 +166,128 @@ Some noteworthy arguments are:
 - `--save-dir` - root of where you want your experiments outputs saved. If you pass a relative path, note that this is relative to from where you called the script, not where the script is located! *Note* per default this outputs to the `data` directory inside your clone of the repo. This makes it easy for you to share (i.e. push your result to github). **IMPORTANT** If you are inside docker, make sure that you either run the script from where it is located (i.e. `cd` to `/code/nip-deeprl-project` and run `python testbench.py ...` there) or specify `-save-dir` to be 
 `/code/nip-deeprl-project/data`.
 
+## Google Cloud Platform Deployment
+This is a step-by-step guide of what I did in order to get deploy and run our docker container on google compute engine.
+
+First you need to sign-up for their service. You will get $300 of free computing time with a max period of 12 months. It will ask for credit card details, but as long as you do not upgrade to a paid plan, you won't be charged.
+
+Before we start you need to [create a project](https://console.cloud.google.com/cloud-resource-manager)
+
+### Get the `gcloud` command line tools (ubuntu)
+(Taken from their docs)
+```bash
+# Create an environment variable for the correct distribution
+export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+
+# Add the Cloud SDK distribution URI as a package source
+echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+
+# Import the Google Cloud Platform public key
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+# Update the package list and install the Cloud SDK
+sudo apt-get update && sudo apt-get install google-cloud-sdk
+
+## Initilize your account settings
+gcloud init
+
+To continue, you must log in. Would you like to log in (Y/n)? Y
+
+# Next select the project you've created beforehand.
+Pick cloud project to use:
+ [1] [my-project-1]
+ [2] [my-project-2]
+ ...
+ Please enter your numeric choice:
+ 
+# You probably want to choose europe-west1-b (there's info on why too choose which online)
+ Which compute zone would you like to use as project default?
+ [1] [asia-east1-a]
+ [2] [asia-east1-b]
+ ...
+ [14] Do not use default zone
+ Please enter your numeric choice:
+ 
+ 
+ gcloud has now been configured!
+ You can use [gcloud config] to change more gcloud settings.
+
+ Your active configuration is: [default]
+```
+
+### Build and push your docker image
+1. Enable billing in your project settings (this should be on by default if this was your first project)
+2. [Enable the API](https://console.cloud.google.com/flows/enableapi?apiid=containerregistry.googleapis.com&redirect=https:%2F%2Fcloud.google.com%2Fcontainer-registry%2Fdocs%2Fquickstart)
+3. Build the image
+```bash
+cd $REPO_ROOT
+docker build -t IMAGE_NAME .
+```
+4. Tag the image
+```
+docker tag IMAGE_NAME HOST_ID/PROJECT_ID/IMAGE_NAME
+```
+HOST\_ID should probably be `eu.gcr.io` if you're in europe.  
+PROJECT\_ID is the name you gave your project earlier.  
+IMAGE_NAME is a name of your choosing.
+
+5. push the image
+```bash
+gcloud docker -- push HOST_ID/PROJECT_ID/IMAGE_NAME
+```
+
+### Create a GCE VM instance
+We're gonna create an instance with 4 vCPUs and ~15GBs RAM.
+
+1. Google provides VM OSes which are optimized for running docker containers inside, you can get a list of current images like this:
+```bash
+gcloud compute images list \
+  --project cos-cloud \
+  --no-standard-images
+  
+NAME                     PROJECT    FAMILY      DEPRECATED  STATUS
+cos-beta-60-9592-23-0    cos-cloud  cos-beta                READY
+cos-dev-61-9655-0-0      cos-cloud  cos-dev                 READY
+cos-stable-57-9202-74-0  cos-cloud                          READY
+cos-stable-58-9334-74-0  cos-cloud  cos-stable              READY
+cos-stable-59-9460-64-0  cos-cloud  cos-stable              READY
+```
+We're selecting the latest stable one: `cos-stable-59-9460-64-0`.
+
+2. Create a single VM instance
+```bash
+gcloud compute instances create VM_NAME \
+    --image IMAGE_NAME \
+    --image-project cos-cloud \
+    --zone ZONE \
+    --machine-type TYPE_ID
+```
+We use  `cos-stable-59-9460-64-0` as `IMAGE_NAME` and `n1-standard-4` as `TYPE_ID`.
+`VM_NAME` is of your choosing.
+
+I created 12 VMs, 6 each in two zones `europe-west1-b` and `europe-west2-a` as trial users have a restriction of 24 cores per region (`europe-west1` defines the region, `-b` the zone) and named them `testbench-vm-1-0` until `testbench-vm-2-5`.
+
+3. Connect to your vm
+```bash
+gcloud compute ssh VM_NAME \
+    --project PROJECT_NAME \
+    --zone ZONE
+```
+This might ask you to generate a private/public key pair and enter a password, or if you've already done that just might ask for just that password.
+
+### Configure and run our docker image
+Inside the VM you can now pull and run our docker image.
+As you pushed your image to `gcr.io` which is a private repo, you need to setup some environment variables.
+Fortunately, Google provides a script at `/usr/share/google/dockercfg_update.sh`.
+```bash
+/usr/share/google/dockercfg_update.sh && docker pull HOST_ID/PROJECT_ID/IMAGE_NAME
+```
+
+Finally, you're able to run your experiments.
+```bash
+mkdir -p ~/data && docker run --rm -v ~/data:/mnt/data HOST_ID/PROJECT_ID/IMAGE_NAME --config CONFIG --repeat COUNT
+```
+This will create a data directory in the VM\'s home directory and save the outputs of your experiment to it.
 
 ## Task Assi800gnments
 - Seonguk  ###
