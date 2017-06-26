@@ -117,8 +117,8 @@ def train(args):
             env.set_state(state["monitor_state"])
 
         start_time, start_steps = None, None
-        steps_per_iter = RunningAvg(0.999)
-        iteration_time_est = RunningAvg(0.999)
+        steps_per_iter = RunningAvg(0.99)
+        iteration_time_est = RunningAvg(0.99)
         best_mean_rew = -float('inf')
         obs = env.reset()
 
@@ -159,10 +159,11 @@ def train(args):
             if num_iters % args.target_update_freq == 0:
                 update_target()
 
-            if start_time is not None:
+            if start_time is not None and done:
                 steps_per_iter.update(info['steps'] - start_steps)
                 iteration_time_est.update(time.time() - start_time)
-            start_time, start_steps = time.time(), info["steps"]
+            if start_time is None or done:
+                start_time, start_steps = time.time(), info["steps"]
 
             # Save the model and training state.
             pickle_dict = {
@@ -203,12 +204,14 @@ def train(args):
                 logger.record_tabular("iters", num_iters)
                 logger.record_tabular("episodes", len(info["rewards"]))
                 logger.record_tabular("reward (100 epi mean)", np.mean(info["rewards"][-100:]))
+                logger.record_tabular("length avg", steps_per_iter._value if steps_per_iter._value is not None else "calculating...")
                 logger.record_tabular("exploration", exploration.value(num_iters))
                 if args.prioritized:
                     logger.record_tabular("max priority", replay_buffer._max_priority)
-                fps_estimate = (float(steps_per_iter) / (float(iteration_time_est) + 1e-6)
-                                if steps_per_iter._value is not None else "calculating...")
+                fps_estimate = (float(steps_per_iter._value) / (float(iteration_time_est) + 1e-6) \
+                                if steps_per_iter._value is not None else 1)
                 logger.dump_tabular()
                 logger.log()
-                logger.log("ETA: " + pretty_eta(int(steps_left / fps_estimate)))
+                eta = int(steps_left / fps_estimate)
+                logger.log("ETA: " + pretty_eta(eta))
                 logger.log()
