@@ -288,6 +288,7 @@ Finally, you're able to run your experiments.
 mkdir -p ~/data && docker run --rm -v ~/data:/mnt/data HOST_ID/PROJECT_ID/IMAGE_NAME --config CONFIG --repeat COUNT
 ```
 This will create a data directory in the VM\'s home directory and save the outputs of your experiment to it.
+Your final setup could then look something like this ![Screenshot of 12 VM sessions](resource/screen.png)
 
 ## Task Assi800gnments
 - Seonguk  ###
