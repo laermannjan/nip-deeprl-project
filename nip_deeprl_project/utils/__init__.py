@@ -1,1 +1,1 @@
-from nip_deeprl_project.utils.utils import write_manifest
+from nip_deeprl_project.utils.utils import write_manifest, get_last_run_number

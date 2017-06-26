@@ -11,7 +11,7 @@ import baselines.common.tf_util as U
 from baselines import logger
 
 from nip_deeprl_project.training import train
-from nip_deeprl_project.utils import write_manifest
+from nip_deeprl_project.utils import write_manifest, get_last_run_number
 from configs import Configs
 
 def parse_args():
@@ -85,11 +85,12 @@ if __name__ == '__main__':
         for config in orig_args.config:
             config_args = copy.deepcopy(orig_args)
             load_config(config_args, config)
-            write_manifest(config_args, os.path.join(config_args.save_dir, config_args.uid), name='experiment')
+            write_manifest(config_args, config_args.save_dir, name='experiment')
             # Repeat experiments with a given config as often as specified
             for i in range(orig_args.repeat):
                 args = copy.deepcopy(config_args)
-                setattr(args, 'save_dir', os.path.join(args.save_dir, args.uid, str(i)))
+                setattr(args, 'save_dir', os.path.join(args.save_dir, str(get_last_run_number(args.save_dir) + 1)))
+                write_manifest(config_args, config_args.save_dir, name='run')
                 logger.log('Starting run: {}'.format(i))
                 train(args)
                 U.reset()

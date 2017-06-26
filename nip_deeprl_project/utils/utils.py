@@ -13,3 +13,8 @@ def write_manifest(args, directory, name=None):
             'gym_version': gym.version.VERSION,
             'args': vars(args)
         }, f)
+
+def get_last_run_number(directory):
+    '''Returns name of subdir with highest integer as name.'''
+    digit_subdirs = [int(sub) for sub in next(os.walk(directory))[1] if sub.isdigit()]
+    return max(digit_subdirs if len(digit_subdirs) else [-1])
