@@ -11,7 +11,7 @@ import gym
 
 from baselines import logger
 from baselines import deepq
-from baselines.deepq.replay_buffer import ReplayBuffer
+from baselines.deepq.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 import baselines.common.tf_util as U
 from baselines.common.schedules import LinearSchedule
 from baselines.common.misc_util import (
@@ -83,7 +83,7 @@ def train(args):
         set_global_seeds(args.seed)
         env.unwrapped.seed(args.seed)
 
-    with U.make_session(4) as sess:
+    with U.make_session(1) as sess:
         # Create training graph and replay buffer
         act, train, update_target, debug = deepq.build_train(
             make_obs_ph=lambda name: U.Uint8Input(env.observation_space.shape, name=name), # Unit8Input is optimized int8 input for GPUs
