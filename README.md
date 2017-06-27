@@ -290,7 +290,7 @@ mkdir -p ~/data && docker run --rm -v ~/data:/mnt/data HOST_ID/PROJECT_ID/IMAGE_
 This will create a data directory in the VM\'s home directory and save the outputs of your experiment to it.
 Your final setup could then look something like this ![Screenshot of 12 VM sessions](resources/screen.png)
 
-### Automation
+### Google Cloud Platform
 #### vCores and Tensorflow sessions
 The number of vCores and the number of cores used by the TensorFlow session (set in `train.py`) seem to have a very huge impact on the overall performance of the system.
 In the following test `Google Compute Engine VMs` have been used and setup up in an attempt to always utilize the newest Core chipsets (Skylake or Broadwell) available.
@@ -324,6 +324,74 @@ In an attempt to increase CPU usage when more than one core is present, an exper
 
 ![Two cores and Four cores used by TF session over twelve hours](resources/vcore2-tf4-12h.jpg)
 > It seems at first when the experiment started (shortly after 9AM), everything went well...until it didn't.
+
+### Continous Integration
+We push our docker image builds to (a subdomain of) `gcr.io`.
+While we usually do this via 
+```bash
+$ docker build -t IMG_NAME REPO_DIR
+$ docker tag NAME HOST_ID/PROJECT_NAME/IMG_NAME:TAG
+$ gcloud docker -- push HOST_ID/PROJECT_NAME/IMG_NAME:TAG
+```
+We can automate the process conveniently like in GCE:  
+0. (Prerequisites) You must have created a GCP account and started a new project (as described above) and initiated billing for it (top left of the page go &#9776; --> Billing).
+> Also create a file called `set-env.sh` in the `nip-deeprl-project/gce/` directory like so
+    
+```bash
+#!/usr/bin/env bash
+
+export PROJECT_NAME='your_project_name_in_single_quotes_here'
+```
+
+ 
+1. &#9776; --> Container Registry --> Build Triggers --> Click Add Trigger
+2. Select github and grant GCP permission to hook into your Github account as an application. 
+3. Choose `nip-deeprl-project` from the list of your repos and tick that you give your consent at the bottom.
+Google will now mirror our repo to their servers (you can find it under &#9776; --> Source Repository) ... this may take a little while.
+4. Leave everything as is on the final page, except the `Image Name`.
+Change it so it like so `eu.gcr.io/PROJECT_NAME/IMAGE_NAME:$COMMIT_SHA`
+
+> Add this to youre `set-env.sh`
+
+```bash
+export GCR_IMAGE=eu.gcr.io/PROJECT_NAME/IMAGE_NAME:$COMMIT_SHA`
+```
+
+where `PROJECT_NAME` is the name you gave your project in GCP earlier
+and `IMAGE_NAME` is how you want your image to be named (this is the same thing you set with `docker tag IMAGE_NAME ...`)
+
+5. Go to &#9776; --> Compute Engine --> VM Instances --> Create Instance
+On the bottom of the page click `command-line` (it reads `Equivalent in REST or command-line`) and locate the `--service-account` argument. Copy the email-like string after it including the double quotes and put it at the bottom of your `set-env.sh`
+```bash
+export GOOGLE_SERVICE_ACCOUNT=the_thing_you_just_copied
+```
+
+6. Now also add the direction to you clone of our repo, so that your entire `set-env.sh` looks like so
+
+```bash
+#!/usr/bin/env bash
+
+export PROJECT_NAME='your_project_name_in_single_quotes_here'
+export GCR_IMAGE=eu.gcr.io/PROJECT_NAME/IMAGE_NAME:$COMMIT_SHA`
+export GOOGLE_SERVICE_ACCOUNT=the_thing_you_just_copied
+export REPO_ROOT=/path/to/nip-deeprl-project
+```
+
+7. Copy `nip-deeprl-project/gce/distribute-tasks.sh` and name the copy `distribute-tasks-your_name.sh` (that way they won't conflict in git)
+In this file you will find an array `exps`.
+Arrays in bash-script are defined like `arr=( "element1" "element2" ... "elementn")`. Make sure you respect the whitespaces.
+Each group of 8 entries in `exps` will be assigned to VMs within the same cluster.
+So the first 8 will be pushed to `europe-west1-d` and the next 8 to `europe-west2-a`.
+Make sure that if you repeat a config name in `exps` you put all of them within the same group of 8!
+`exps` **must** consist of 64 valid configs name or you will pay for idling VMs.
+8. Run the scripts
+```bash
+cd path/to/nip-deeprl-project/gce
+bash set-env.sh
+bash google-compute-engine-init.sh 
+bash distribute-tasks-your_name.sh
+```
+> Be aware, because the scripts are designed to spawn parallel requests to Google's server you might see pretty strange suff on the console. Just wait for 30s after each of the last two scripts, press ENTER and see if nothing furher happens, then continue with the next one.
 
 ## Task Assi800gnments
 - Seonguk  ###
