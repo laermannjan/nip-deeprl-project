@@ -179,4 +179,60 @@ Configs = {
         'schedule_timesteps': 500*800,
         'arch': [512, 256, 128]
     },
+    'LL_e1_short_eq_prio': {
+        'env': 'LunarLander-v2',
+        'final_p': 0.01,
+        'schedule_timesteps': 500*300,
+        'arch': [256, 256, 256],
+        'prioritized': True
+    },
+    'LL_e1_long_eq_prio': {
+        'env': 'LunarLander-v2',
+        'final_p': 0.01,
+        'schedule_timesteps': 500*800,
+        'arch': [256, 256, 256],
+        'prioritized': True
+    },
+    'LL_e10_short_eq_prio': {
+        'env': 'LunarLander-v2',
+        'final_p': 0.1,
+        'schedule_timesteps': 500*300,
+        'arch': [256, 256, 256],
+        'prioritized': True
+    },
+    'LL_e10_long_eq_prio': {
+        'env': 'LunarLander-v2',
+        'final_p': 0.1,
+        'schedule_timesteps': 500*800,
+        'arch': [256, 256, 256],
+        'prioritized': True
+    },
+    'AB_e1_short_eq_prio': {
+        'env': 'Acrobot-v1',
+        'final_p': 0.01,
+        'schedule_timesteps': 500*300,
+        'arch': [256, 256, 256],
+        'prioritized': True
+    },
+    'AB_e1_long_eq_prio': {
+        'env': 'Acrobot-v1',
+        'final_p': 0.01,
+        'schedule_timesteps': 500*800,
+        'arch': [256, 256, 256],
+        'prioritized': True
+    },
+    'AB_e10_short_eq_prio': {
+        'env': 'Acrobot-v1',
+        'final_p': 0.1,
+        'schedule_timesteps': 500*300,
+        'arch': [256, 256, 256],
+        'prioritized': True
+    },
+    'AB_e10_long_eq_prio': {
+        'env': 'Acrobot-v1',
+        'final_p': 0.1,
+        'schedule_timesteps': 500*800,
+        'arch': [256, 256, 256],
+        'prioritized': True
+    },
 }
