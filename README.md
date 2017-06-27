@@ -1,5 +1,42 @@
 # Deep Reinforcment Learning Project 2017
 [Deep RL Project Calendar](https://calendar.google.com/calendar/ical/fuc8n5c750pte22c32kgi940ug%40group.calendar.google.com/private-42a8e26f0d1130a135a2a1fd08accb6a/basic.ics)
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
+**Table of Contents**
+
+- [Deep Reinforcment Learning Project 2017](#deep-reinforcment-learning-project-2017)
+    - [Setup](#setup)
+        - [Docker](#docker)
+            - [Install docker (from [the docker docs](https://docs.docker.com/engine/installation/linux/ubuntu/#install-docker())):](#install-docker-from-the-docker-docshttpsdocsdockercomengineinstallationlinuxubuntuinstall-docker)
+            - [Build docker image and run the container](#build-docker-image-and-run-the-container)
+                - [(Recommended) Use docker container as a service.](#recommended-use-docker-container-as-a-service)
+                - [Interact with the container](#interact-with-the-container)
+    - [SWIG\_Constant\_randInt Fix](#swigconstantrandint-fix)
+    - [How to run experiments](#how-to-run-experiments)
+        - [Configs](#configs)
+            - [Example `configs.py`](#example-configspy)
+            - [How to write a config](#how-to-write-a-config)
+            - [Keys](#keys)
+        - [Running an experiment (only use if you do not use the docker container as a service)](#running-an-experiment-only-use-if-you-do-not-use-the-docker-container-as-a-service)
+    - [Google Cloud Platform Deployment](#google-cloud-platform-deployment)
+        - [Get the `gcloud` command line tools (ubuntu)](#get-the-gcloud-command-line-tools-ubuntu)
+        - [Build and push your docker image](#build-and-push-your-docker-image)
+        - [Create a GCE VM instance](#create-a-gce-vm-instance)
+        - [Configure and run our docker image](#configure-and-run-our-docker-image)
+        - [Google Cloud Platform](#google-cloud-platform)
+            - [vCores and Tensorflow sessions](#vcores-and-tensorflow-sessions)
+                - [Number of Cores](#number-of-cores)
+                    - [One core and one core used by TF session](#one-core-and-one-core-used-by-tf-session)
+                    - [Two core and two core used by TF session](#two-core-and-two-core-used-by-tf-session)
+                    - [Four core and four core used by TF session](#four-core-and-four-core-used-by-tf-session)
+                    - [Eight core and Eight core used by TF session](#eight-core-and-eight-core-used-by-tf-session)
+            - [Cores allocated by Tensorflow](#cores-allocated-by-tensorflow)
+        - [Continous Integration](#continous-integration)
+    - [Project Plan](#project-plan)
+    - [Paper Guidelines](#paper-guidelines)
+    - [Misc. Notes](#misc-notes)
+        - [OpenAI gym installation](#openai-gym-installation)
+
+<!-- markdown-toc end -->
 
 ## Setup
 **Optional**: This project has been packaged as a python pip package (but was not published to PyPI). This makes it possible to run setup.py and use our main facilities (train.py, dual_monitor.py, utils.py, etc.) in other projects.
@@ -393,19 +430,7 @@ bash distribute-tasks-your_name.sh
 ```
 > Be aware, because the scripts are designed to spawn parallel requests to Google's server you might see pretty strange suff on the console. Just wait for 30s after each of the last two scripts, press ENTER and see if nothing furher happens, then continue with the next one.
 
-## Task Assi800gnments
-- Seonguk  ###
-    * --- 
-- Jan 
-    * Run testbench for LunarLander over multiple architectures : (100-100-100) vs (150-100-50)  a 3x times = 6 runs 
-- Robert
-    * Run testbench for LunarLander over multiple exploration rates : (10 000) vs (400 000)  a 3x times = 6 runs 
-- Manuel
-    * Run testbench for LunarLander over multiple architectures : (150-150-150) vs (200-150-100)  a 3x times = 6 runs 
-- SHOULD TAKE ABOUT 30 MINS per run
-    
 ## Project Plan
-
 
 - timeline
     - [x] run vanilla DQN (statespace)
