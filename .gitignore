@@ -8,5 +8,4 @@
 # emacs stuff
 .#*
 
-# Don't upload every default trained agent
-trained_agents/
+*.fish
