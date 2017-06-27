@@ -290,6 +290,41 @@ mkdir -p ~/data && docker run --rm -v ~/data:/mnt/data HOST_ID/PROJECT_ID/IMAGE_
 This will create a data directory in the VM\'s home directory and save the outputs of your experiment to it.
 Your final setup could then look something like this ![Screenshot of 12 VM sessions](resources/screen.png)
 
+### Automation
+#### vCores and Tensorflow sessions
+The number of vCores and the number of cores used by the TensorFlow session (set in `train.py`) seem to have a very huge impact on the overall performance of the system.
+In the following test `Google Compute Engine VMs` have been used and setup up in an attempt to always utilize the newest Core chipsets (Skylake or Broadwell) available.
+The provisioned vCores run, depending on the chipset, at around 2.0GHz - 2.6GHz. Memory size and speed was not investigated, however the smallest setup (1 vCore) does only come with 3.5GB of RAM, which we consider minimum (note that GCE VMs offer a setup `n1-highcpu-2` which only comes with 1.8GB RAM)
+##### Number of Cores
+Four configurations where tested: 1, 2, 4, and 8 cores.
+Each ran a docker container containing an image with our project in it, which utilized exactly the number of cores for its TensorFlow session has its host offered (1, 2, 4, and 8, respectively). The container was handed off to the docker daemon and the output directed to a file `experiment.log` to not slow down the process by outputting onto the console. The testbench configuration used is `AB_e10_short_de` (no reason to choose one in particular).
+Following are the results in terms of CPU usage and estimated times of the experiment to finish (as predicted by the script itself).
+###### One core and one core used by TF session
+![One core and one core used by TF session](resources/vcore1-tf1.jpg)
+> ETA after 100 episodes: 9h34min
+
+###### Two core and two core used by TF session
+![Two cores and two cores used by TF session](resources/vcore2-tf2.jpg)
+> ETA after 100 episodes: 11h03min
+
+> As this result was very unexpected I repeated it on a new VM with very similar results (ETA: 11h14min).
+
+###### Four core and four core used by TF session
+![Four cores and four cores used by TF session](resources/vcore4-tf4.jpg)
+> ETA after 100 episodes: 6h15min
+
+###### Eight core and Eight core used by TF session
+![Eight cores and Eight cores used by TF session](resources/vcore8-tf8.jpg)
+> ETA after 100 episodes: 4h19min
+
+#### Cores allocated by Tensorflow
+In an attempt to increase CPU usage when more than one core is present, an experiment has been conducted with two virtual cores on the host, while tensorflow attempts to allocate four.
+![Two cores and Four cores used by TF session over six hours](resources/vcore2-tf4-6h.jpg)
+> Very shaky behaviour with a clear declining trend
+
+![Two cores and Four cores used by TF session over twelve hours](resources/vcore2-tf4-12h.jpg)
+> It seems at first when the experiment started (shortly after 9AM), everything went well...until it didn't.
+
 ## Task Assi800gnments
 - Seonguk  ###
     * --- 
