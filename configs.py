@@ -39,13 +39,13 @@ Configs = {
         'env': 'LunarLander-v2',
         'final_p': 0.01,
         'schedule_timesteps': 500*300,
-        'arch': [128, 256, 512]
+        'arch': [128, 192, 256]
     },
     'LL_e1_short_eq': {
         'env': 'LunarLander-v2',
         'final_p': 0.01,
         'schedule_timesteps': 500*300,
-        'arch': [256, 256, 256]
+        'arch': [128, 128, 128]
     },
     'LL_e1_short_de': {
         'env': 'LunarLander-v2',
