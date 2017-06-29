@@ -91,8 +91,10 @@ def train(args):
             q_func=model,
             num_actions=env.action_space.n,
             optimizer=tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=1e-8), # often 1e-4 for atari games, why?
+            # -> epsilon is a const to prevent deviding by 0. formula is something like lr * x / (sqrt(x) +epsilon)
+            # this may also depend on precision and maybe atari games were trained with half precision?!
             gamma=args.gamma,
-            grad_norm_clipping=None, # was 10, why?
+            grad_norm_clipping=None, # was 10, why? -> clipping helps to keeps gradients under control. not sure why this is favored over L2 norm here.
             double_q=args.double_q
         )
 
