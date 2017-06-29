@@ -31,12 +31,12 @@ for ((z=0;z<${#zones[@]};++z)); do
         cmd=(gcloud compute ssh instance-$n \
                     --project $PROJECT_NAME \
                     --zone ${zones[z]} -- \
-                    /usr/share/google/dockercfg_update.sh \&\& \
+                    "/usr/share/google/dockercfg_update.sh \&\& \
                     docker pull $GCR_IMAGE \&\&
                     docker run -d \
                            -v /home/$USER/data:/mnt/data $GCR_IMAGE \
                            --config ${exps[n]} --repeat 2 \
-                           --write-upon-reset --capture-videos)
+                           --write-upon-reset --capture-videos")
         "${cmd[@]}" &
     done
 done
