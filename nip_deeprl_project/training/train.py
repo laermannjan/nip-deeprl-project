@@ -40,7 +40,8 @@ def make_env(game_name, args, **kwargs):
     monitored_env = DualMonitor(augmented_env,
                                 directory=args.save_dir,
                                 write_upon_reset=args.write_upon_reset,
-                                video_callable=args.capture_videos)
+                                video_callable=args.capture_videos,
+                                write_freq=args.write_freq)
     return monitored_env
 
 
@@ -202,7 +203,7 @@ def train(args):
                 logger.record_tabular("% completion", completion)
                 logger.record_tabular("steps", info["steps"])
                 logger.record_tabular("iters", num_iters)
-                logger.record_tabular("episodes", len(info["rewards"]))
+                logger.record_tabular("episodes", info["episodes"])
                 logger.record_tabular("reward (100 epi mean)", np.mean(info["rewards"][-100:]))
                 logger.record_tabular("length avg", steps_per_iter._value if steps_per_iter._value is not None else "calculating...")
                 logger.record_tabular("exploration", exploration.value(num_iters))

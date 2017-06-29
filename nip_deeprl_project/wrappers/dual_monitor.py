@@ -10,7 +10,7 @@ from gym.monitoring import video_recorder
 class DualMonitor(gym.Wrapper):
     VIDEOS_DIR = 'videos'
 
-    def __init__(self, env, directory, video_callable=None, write_upon_reset=False):
+    def __init__(self, env, directory, video_callable=None, write_upon_reset=False, write_freq=100):
         """Adds two qunatities to info returned by every step:
             num_steps: int
                 Number of steps takes so far
@@ -39,8 +39,10 @@ class DualMonitor(gym.Wrapper):
         # extras
         self._video_recorder = None
         self._augmented_reward = None
-
+        self._counter = 0
+        self._write_freq = write_freq
         self.write_upon_reset = write_upon_reset
+
         self._start(directory, video_callable)
 
     def _start(self, directory, video_callable):
@@ -148,18 +150,33 @@ class DualMonitor(gym.Wrapper):
 
     def _flush(self, force=False):
         if self.write_upon_reset or force:
-            # Write stats file
-            fname = 'stats.npz'
+            fname = 'replay_buffer.episode_{}.npz'.format(self._episode_id)
             np.savez(os.path.join(self.directory, fname),
-                     episode_lengths=np.array(self._episode_lengths),
-                     episode_rewards=np.array(self._episode_rewards),
-                     episode_end_times=np.array(self._episode_end_times),
-                     td_errors=np.array(self._epoche_td_errors),
                      observations=np.array(self._observations),
                      actions=np.array(self._actions),
                      rewards=np.array(self._rewards),
                      dones=np.array(self._dones)
+            )
+            del self._observations[:-200]
+            del self._actions[:-200]
+            del self._rewards[:-200]
+            del self._dones[:-200]
+
+            if self._episode_id % self._write_freq == 0 or force:
+                # Write stats file
+                fname = 'episode_stats.{}.npz'.format(self._counter)
+                np.savez(os.path.join(self.directory, fname),
+                         episode_lengths=np.array(self._episode_lengths[-self.write_upon_reset:]),
+                         episode_rewards=np.array(self._episode_rewards[-self.write_upon_reset:]),
+                         episode_end_times=np.array(self._episode_end_times[-self.write_upon_reset:]),
+                         td_errors=np.array(self._epoche_td_errors[-self.write_upon_reset:])
                      )
+                del self._episode_lengths[:-self._write_freq*2]
+                del self._episode_rewards[:-self._write_freq*2]
+                del self._episode_end_times[:-self._write_freq*2]
+                del self._epoche_td_errors[:-self._write_freq*2]
+                self._counter += 1
+
 
 
     def record_exploration(self, exploration):

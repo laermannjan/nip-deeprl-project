@@ -53,6 +53,7 @@ def parse_args():
     parser.add_argument("--config", type=str, nargs='+', choices=Configs.keys(), default=None, help="define a config by name from configs.py which may overwrite other arguments")
     parser.add_argument("--repeat", type=int, default=1, help="number of times the same experiment is being repeated. if multiple configs are defined, each is being repeated individually.")
     parser.add_argument("--uid", type=str, nargs='+', default=None, help="UNIQUE identifier for each run of an experiment even across sessions")
+    parser.add_argument("--write-freq", type=int, default=100, help='Write stats to disk once every time this many episodes are completed.')
     return parser.parse_args()
 
 def _load_config(args, config):
@@ -89,8 +90,9 @@ if __name__ == '__main__':
             # Repeat experiments with a given config as often as specified
             for i in range(orig_args.repeat):
                 args = copy.deepcopy(config_args)
-                setattr(args, 'save_dir', os.path.join(args.save_dir, str(get_last_run_number(args.save_dir) + 1)))
-                write_manifest(config_args, config_args.save_dir, name='run')
+                run_id = get_last_run_number(args.save_dir) + 1
+                setattr(args, 'save_dir', os.path.join(args.save_dir, str(run_id)))
+                write_manifest(config_args, config_args.save_dir, name='run.{}'.format(run_id))
                 logger.log('Starting run: {}'.format(i))
                 train(args)
                 U.reset()
