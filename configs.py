@@ -11,11 +11,11 @@ Configs = {
         'initial_p': 1.0,
         'final_p': 0.02,
         'learning_freq': 1,
-        'target_update_freq': 500*30,
-        'replay_buffer_size': 500*20,
+        'target_update_freq': 5000*30,
+        'replay_buffer_size': 5000*20,
         'batch_size': 100,
         'augmented_reward': None,
-        'save_freq': 500*20,
+        'save_freq': 5000*20,
     },
     'LL_basic': {
         'env': 'LunarLander-v2',
@@ -110,73 +110,73 @@ Configs = {
     'AB_e1_short_in': {
         'env': 'Acrobot-v1',
         'final_p': 0.01,
-        'schedule_timesteps': 500*300,
+        'schedule_timesteps': 5000*100,
         'arch': [128, 256, 512]
     },
     'AB_e1_short_eq': {
         'env': 'Acrobot-v1',
         'final_p': 0.01,
-        'schedule_timesteps': 500*300,
+        'schedule_timesteps': 5000*100,
         'arch': [256, 256, 256]
     },
     'AB_e1_short_de': {
         'env': 'Acrobot-v1',
         'final_p': 0.01,
-        'schedule_timesteps': 500*300,
+        'schedule_timesteps': 5000*100,
         'arch': [512, 256, 128]
     },
     'AB_e1_long_in': {
         'env': 'Acrobot-v1',
         'final_p': 0.01,
-        'schedule_timesteps': 500*800,
+        'schedule_timesteps': 5000*300,
         'arch': [128, 256, 512]
     },
     'AB_e1_long_eq': {
         'env': 'Acrobot-v1',
         'final_p': 0.01,
-        'schedule_timesteps': 500*800,
+        'schedule_timesteps': 5000*300,
         'arch': [256, 256, 256]
     },
     'AB_e1_long_de': {
         'env': 'Acrobot-v1',
         'final_p': 0.01,
-        'schedule_timesteps': 500*800,
+        'schedule_timesteps': 5000*300,
         'arch': [512, 256, 128]
     },
     'AB_e10_short_in': {
         'env': 'Acrobot-v1',
         'final_p': 0.1,
-        'schedule_timesteps': 500*300,
+        'schedule_timesteps': 5000*100,
         'arch': [128, 256, 512]
     },
     'AB_e10_short_eq': {
         'env': 'Acrobot-v1',
         'final_p': 0.1,
-        'schedule_timesteps': 500*300,
+        'schedule_timesteps': 5000*100,
         'arch': [256, 256, 256]
     },
     'AB_e10_short_de': {
         'env': 'Acrobot-v1',
         'final_p': 0.1,
-        'schedule_timesteps': 500*300,
+        'schedule_timesteps': 5000*100,
         'arch': [512, 256, 128]
     },
     'AB_e10_long_in': {
         'env': 'Acrobot-v1',
         'final_p': 0.1,
-        'schedule_timesteps': 500*800,
+        'schedule_timesteps': 5000*300,
         'arch': [128, 256, 512]
     },
     'AB_e10_long_eq': {
         'env': 'Acrobot-v1',
         'final_p': 0.1,
-        'schedule_timesteps': 500*800,
+        'schedule_timesteps': 5000*300,
         'arch': [256, 256, 256]
     },
     'AB_e10_long_de': {
         'env': 'Acrobot-v1',
         'final_p': 0.1,
-        'schedule_timesteps': 500*800,
+        'schedule_timesteps': 5000*300,
         'arch': [512, 256, 128]
     },
     'LL_e1_short_eq_prio': {
