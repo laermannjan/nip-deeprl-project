@@ -51,7 +51,7 @@ def parse_args():
     boolean_flag(parser, "capture-videos", default=False, help="if true enables video capturing.")
     # Config
     parser.add_argument("--config", type=str, nargs='+', choices=Configs.keys(), default=None, help="define a config by name from configs.py which may overwrite other arguments")
-    parser.add_argument("--repeat", type=int, default=1, help="number of times the same experiment is being repeated. if multiple configs are defined, each is being repeated individually.")
+    parser.add_argument("--repeat", type=int, default=5, help="number of times the same experiment is being repeated. if multiple configs are defined, each is being repeated individually.")
     parser.add_argument("--uid", type=str, nargs='+', default=None, help="UNIQUE identifier for each run of an experiment even across sessions")
     parser.add_argument("--write-freq", type=int, default=100, help='Write stats to disk once every time this many episodes are completed.')
     return parser.parse_args()
