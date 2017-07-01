@@ -118,8 +118,8 @@ def train(args):
             env.set_state(state["monitor_state"])
 
         start_time, start_steps = None, None
-        steps_per_iter = RunningAvg(0.99)
-        iteration_time_est = RunningAvg(0.99)
+        steps_per_episode = RunningAvg(0.99)
+        episode_time_est = RunningAvg(0.99)
         best_mean_rew = -float('inf')
         obs = env.reset()
 
@@ -161,8 +161,8 @@ def train(args):
                 update_target()
 
             if start_time is not None and done:
-                steps_per_iter.update(info['steps'] - start_steps)
-                iteration_time_est.update(time.time() - start_time)
+                steps_per_episode.update(info['steps'] - start_steps)
+                episode_time_est.update(time.time() - start_time)
             if start_time is None or done:
                 start_time, start_steps = time.time(), info["steps"]
 
@@ -197,22 +197,29 @@ def train(args):
                 break
 
             if done:
-                steps_left = args.num_steps - info["steps"]
-                completion = np.round(info["steps"] / args.num_steps, 1)
+                if args.num_episodes is not None:
+                    eps_left = args.num_episodes - info["episodes"]
+                    completion = np.round(info["episodes"] / args.num_episodes, 1)
+                else: 
+                    steps_left = args.num_steps - info["steps"]
+                    completion = np.round(info["steps"] / args.num_steps, 1)
 
                 logger.record_tabular("% completion", completion)
                 logger.record_tabular("steps", info["steps"])
-                logger.record_tabular("iters", num_iters)
                 logger.record_tabular("episodes", info["episodes"])
                 logger.record_tabular("reward (100 epi mean)", np.mean(info["rewards"][-100:]))
-                logger.record_tabular("length avg", steps_per_iter._value if steps_per_iter._value is not None else "calculating...")
+                logger.record_tabular("length avg", steps_per_episode._value if steps_per_episode._value is not None else "calculating...")
                 logger.record_tabular("exploration", exploration.value(num_iters))
                 if args.prioritized:
                     logger.record_tabular("max priority", replay_buffer._max_priority)
-                fps_estimate = (float(steps_per_iter._value) / (float(iteration_time_est) + 1e-6) \
-                                if steps_per_iter._value is not None else 1)
                 logger.dump_tabular()
                 logger.log()
-                eta = int(steps_left / fps_estimate)
+                fps_estimate = (float(steps_per_episode._value) / (float(episode_time_est) + 1e-6) \
+                                if steps_per_episode._value is not None else 1)
+                if args.num_episodes is not None:
+                    eta = int(eps_left * float(steps_per_episode._value) / fps_estimate \
+                          if steps_per_episode._value is not None else env._max_episode_steps)
+                else:
+                    eta = int(steps_left / fps_estimate)
                 logger.log("ETA: " + pretty_eta(eta))
                 logger.log()
