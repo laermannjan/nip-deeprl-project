@@ -325,7 +325,14 @@ Finally, you're able to run your experiments.
 mkdir -p ~/data && docker run --rm -v ~/data:/mnt/data HOST_ID/PROJECT_ID/IMAGE_NAME --config CONFIG --repeat COUNT
 ```
 This will create a data directory in the VM\'s home directory and save the outputs of your experiment to it.
-Your final setup could then look something like this ![Screenshot of 12 VM sessions](resources/screen.png)
+Your final setup could then look something like this ![Screenshot of 12 VM sessions](resources/screen.png)  
+
+### Download results from VM
+For later saving the results(-folder) to your computer:
+```bash
+gcloud beta compute scp INSTANCE_NAME:~/data PATH_TO_LOCAL_DIR --recurse
+```  
+This will download all results to in 'data' in your LOCAL_DIR
 
 ### Google Cloud Platform
 #### vCores and Tensorflow sessions
