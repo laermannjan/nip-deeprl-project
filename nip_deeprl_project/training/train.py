@@ -156,20 +156,21 @@ def train(args):
             # if (num_iters > max(5 * args.batch_size, args.replay_buffer_size // 20) and # num_iters > args.min_t_learning
             if (num_iters > args.learning_delay and
                     num_iters % args.learning_freq == 0):
-                # Sample a bunch of transitions from replay buffer
-                if args.prioritized:
-                    experience = replay_buffer.sample(args.batch_size, beta=beta_schedule.value(num_iters))
-                    (obses_t, actions, rewards, obses_tp1, dones, weights, batch_idxes) = experience
-                else:
-                    obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(args.batch_size)
-                    weights = np.ones_like(rewards)
-                # Minimize the error in Bellman's equation and compute TD-error
-                td_errors = train(obses_t, actions, rewards, obses_tp1, dones, weights)
-                env.record_td_errors(td_errors)
-                # Update the priorities in the replay buffer
-                if args.prioritized:
-                    new_priorities = np.abs(td_errors) + args.prioritized_eps
-                    replay_buffer.update_priorities(batch_idxes, new_priorities)
+                for i_iter in range(args.num_samples):
+                    # Sample a bunch of transitions from replay buffer
+                    if args.prioritized:
+                        experience = replay_buffer.sample(args.batch_size, beta=beta_schedule.value(num_iters))
+                        (obses_t, actions, rewards, obses_tp1, dones, weights, batch_idxes) = experience
+                    else:
+                        obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(args.batch_size)
+                        weights = np.ones_like(rewards)
+                    # Minimize the error in Bellman's equation and compute TD-error
+                    td_errors = train(obses_t, actions, rewards, obses_tp1, dones, weights)
+                    env.record_td_errors(td_errors)
+                    # Update the priorities in the replay buffer
+                    if args.prioritized:
+                        new_priorities = np.abs(td_errors) + args.prioritized_eps
+                        replay_buffer.update_priorities(batch_idxes, new_priorities)
             # Update target network.
             if num_iters % args.target_update_freq == 0:
                 update_target()

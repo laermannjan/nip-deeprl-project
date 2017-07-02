@@ -25,6 +25,7 @@ def parse_args():
     parser.add_argument("--lr", type=float, default=1e-4, help="learning rate for Adam optimizer")
     parser.add_argument("--num-steps", type=int, default=int(2e8), help="total number of steps to run the environment for")
     parser.add_argument("--num-episodes", type=int, default=None, help="total number of episodes to run the environment for. this overwrites num_steps")
+    parser.add_argument("--num-samples", type=int, default=None, help="number of times we samples the minibuffer in an optimization step")
     parser.add_argument("--batch-size", type=int, default=32, help="number of transitions to optimize at the same time")
     parser.add_argument("--learning-freq", type=int, default=4, help="number of iterations between every optimization step")
     parser.add_argument("--target-update-freq", type=int, default=40000, help="number of iterations between every target network update")
