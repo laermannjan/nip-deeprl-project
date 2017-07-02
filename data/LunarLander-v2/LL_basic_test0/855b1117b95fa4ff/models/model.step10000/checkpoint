@@ -1,2 +1,0 @@
-model_checkpoint_path: "/mnt/data/LunarLander-v2/LL_basic_test0/855b1117b95fa4ff/models/model.step10000/saved"
-all_model_checkpoint_paths: "/mnt/data/LunarLander-v2/LL_basic_test0/855b1117b95fa4ff/models/model.step10000/saved"

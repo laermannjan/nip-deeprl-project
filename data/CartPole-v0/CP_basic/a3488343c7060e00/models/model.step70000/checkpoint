@@ -1,2 +1,0 @@
-model_checkpoint_path: "/mnt/data/CartPole-v0/CP_basic/a3488343c7060e00/models/model.step70000/saved"
-all_model_checkpoint_paths: "/mnt/data/CartPole-v0/CP_basic/a3488343c7060e00/models/model.step70000/saved"
