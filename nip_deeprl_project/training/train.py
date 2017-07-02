@@ -13,6 +13,7 @@ from baselines import logger
 from baselines import deepq
 from baselines.deepq.replay_buffer import ReplayBuffer, PrioritizedReplayBuffer
 import baselines.common.tf_util as U
+import tensorflow.contrib.layers as layers
 from baselines.common.schedules import LinearSchedule
 from baselines.common.misc_util import (
     pickle_load,
@@ -75,19 +76,28 @@ def maybe_load_model(savedir):
         logger.log("Loaded models checkpoint at {} iterations".format(state["num_iters"]))
         return state
 
+def my_model(inpt, num_actions, scope, reuse=False):
+    """This model takes as input an observation and returns values of all actions."""
+    with tf.variable_scope(scope, reuse=reuse):
+        out = inpt
+        out = layers.fully_connected(out, num_outputs=64, activation_fn=tf.nn.tanh)
+        out = layers.fully_connected(out, num_outputs=num_actions, activation_fn=None)
+        return out
+
 def train(args):
     savedir = args.save_dir
     # Create and seed the env.
     env = make_env(args.env, args, _max_episode_steps=args.max_episode_steps)
     model = deepq.models.mlp(args.arch)
+    # model = my_model
     if args.seed > 0:
         set_global_seeds(args.seed)
         env.unwrapped.seed(args.seed)
 
-    with U.make_session(1) as sess:
+    with U.make_session(8) as sess:
         # Create training graph and replay buffer
         act, train, update_target, debug = deepq.build_train(
-            make_obs_ph=lambda name: U.Uint8Input(env.observation_space.shape, name=name), # Unit8Input is optimized int8 input for GPUs
+            make_obs_ph=lambda name: U.BatchInput(env.observation_space.shape, name=name), # Unit8Input is optimized int8 input for GPUs
             q_func=model,
             num_actions=env.action_space.n,
             optimizer=tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=1e-8), # often 1e-4 for atari games, why?
@@ -112,16 +122,15 @@ def train(args):
         update_target()
         num_iters = 0
 
-        # Load the model
         state = maybe_load_model(savedir)
-        if state is not None:
-            num_iters, replay_buffer = state["num_iters"], state["replay_buffer"],
-            # TODO: implement set_state in monitoring.py
-            env.set_state(state["monitor_state"])
+        # if state is not None:
+        #     num_iters, replay_buffer = state["num_iters"], state["replay_buffer"],
+        #     # TODO: implement set_state in monitoring.py
+        #     env.set_state(state["monitor_state"])
 
         start_time, start_steps = None, None
-        steps_per_episode = RunningAvg(0.99)
-        episode_time_est = RunningAvg(0.99)
+        steps_per_episode = RunningAvg(0.999)
+        episode_time_est = RunningAvg(0.999)
         best_mean_rew = -float('inf')
         obs = env.reset()
 
@@ -142,7 +151,8 @@ def train(args):
             if done:
                 obs = env.reset()
 
-            if (num_iters > max(5 * args.batch_size, args.replay_buffer_size // 20) and # num_iters > args.min_t_learning
+            # if (num_iters > max(5 * args.batch_size, args.replay_buffer_size // 20) and # num_iters > args.min_t_learning
+            if (num_iters > args.learning_delay and
                     num_iters % args.learning_freq == 0):
                 # Sample a bunch of transitions from replay buffer
                 if args.prioritized:

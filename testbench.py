@@ -2,6 +2,7 @@ import os
 import time
 import argparse
 import random
+import secrets
 import copy
 
 from gym import envs, error
@@ -27,6 +28,7 @@ def parse_args():
     parser.add_argument("--batch-size", type=int, default=32, help="number of transitions to optimize at the same time")
     parser.add_argument("--learning-freq", type=int, default=4, help="number of iterations between every optimization step")
     parser.add_argument("--target-update-freq", type=int, default=40000, help="number of iterations between every target network update")
+    parser.add_argument("--learning-delay", type=int, default=1000, help="number of iterations before learning starts")
     parser.add_argument("--arch", type=int, default=[256]*3, nargs='+', help="number of nodes per layer for this model.")
     parser.add_argument("--gamma", type=float, default=0.99, help="DQN discount factor")
     parser.add_argument("--schedule-timesteps", type=int, default=150000, help="steps in which exploration fraction anneals from initial_p to final_p.")
@@ -90,7 +92,7 @@ if __name__ == '__main__':
             # Repeat experiments with a given config as often as specified
             for i in range(orig_args.repeat):
                 args = copy.deepcopy(config_args)
-                run_id = get_last_run_number(args.save_dir) + 1
+                run_id = secrets.token_hex(8)
                 setattr(args, 'save_dir', os.path.join(args.save_dir, str(run_id)))
                 write_manifest(config_args, config_args.save_dir, name='run.{}'.format(run_id))
                 logger.log('Starting run: {}'.format(i))
