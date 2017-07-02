@@ -1,0 +1,48 @@
+FROM nvidia/cuda:8.0-cudnn6-devel-ubuntu16.04
+
+LABEL maintainer "Jan Laermann [laermannjan@gmail.com]"
+
+# Pick up some TF dependencies
+RUN apt-get update && apt-get install -yq --no-install-recommends \
+        build-essential \
+        curl \
+        ffmpeg \
+        libboost-all-dev \
+        libfreetype6-dev \
+        libpng12-dev \
+        libzmq3-dev \
+        libglu1-mesa \
+        pkg-config \
+        rsync \
+        software-properties-common \
+        swig3.0 \
+        unzip \
+        xvfb \
+        && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    ln -s /usr/bin/swig3.0 /usr/bin/swig
+
+# Set up environment, download and install miniconda
+ENV MINICONDA_ROOT /opt/miniconda
+ENV PATH $MINICONDA_ROOT/bin:$PATH
+
+RUN curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o ~/anaconda.sh && \
+    bash ~/anaconda.sh -b -p $MINICONDA_ROOT && \
+    rm ~/anaconda.sh
+
+RUN /bin/bash -c "conda create -n py35 python=3.5 && \ 
+    source activate py35 && \
+    conda install -c https://conda.anaconda.org/kne pybox2d && \
+    pip --no-cache-dir install \
+        tensorflow-gpu \
+        gym[classic_control] \
+        gym[box2d] \
+        baselines"
+
+WORKDIR /code
+ENV PROJECT_PATH /code
+COPY . /code
+RUN chmod +x /code/docker-entrypoint.sh
+
+ENTRYPOINT ["/code/docker-entrypoint.sh"]

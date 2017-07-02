@@ -1,0 +1,103 @@
+FROM ubuntu:16.04
+
+LABEL maintainer "Jan Laermann [laermannjan@gmail.com]"
+
+# Set environment variables
+# ENV PATH "/usr/local/cuda-8.0/bin:$PATH"
+# ENV LD_LIBRARY_PATH "/usr/local/cuda-8.0/lib:$LD_LIBRARY_PATH"
+ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
+
+# Set keyboard configuration in advance of installing CUDA
+RUN apt-get update && apt-get install -yq keyboard-configuration
+
+# Download wget
+RUN apt-get -y install curl wget
+
+# Download CUDA
+RUN wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
+
+# Install cuda
+RUN dpkg -i cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
+
+# Install cuDNN 6
+RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
+ENV CUDNN_VERSION 6.0.21
+
+# Install necessary ubuntu packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+     build-essential \
+     cmake \
+     cuda \
+     curl \
+     libcupti-dev \
+     libcudnn6=$CUDNN_VERSION-1+cuda8.0 \
+     libcudnn6-dev=$CUDNN_VERSION-1+cuda8.0 && \
+     libfreetype6-dev \
+     libpng12-dev \
+     libzmq3-dev \
+     pkg-config \
+     rsync \
+     software-properties-common \
+     unzip \
+     git  \
+     libav-tools \
+     libboost-all-dev \
+     libjpeg-dev \
+     libpq-dev \
+     libsdl2-dev \
+     swig3.0 \
+     unzip \
+     wget \
+     xorg-dev \
+     xpra \
+     xvfb \
+     zlib1g-dev \
+     && \
+     apt-get clean && \
+     rm -rf /var/lib/apt/lists/* && \
+     ln -s /usr/bin/swig3.0 /usr/bin/swig
+
+RUN apt-get -y upgrade
+
+# Set up environment, download and install miniconda
+ENV MINICONDA_ROOT /opt/miniconda
+ENV PATH $MINICONDA_ROOT/bin:$PATH
+
+RUN curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o ~/anaconda.sh && \
+    bash ~/anaconda.sh -b -p $MINICONDA_ROOT && \
+    rm ~/anaconda.sh
+
+RUN /bin/bash -c "conda create -n py35 python=3.5 && \ 
+    source activate py35 && \
+    conda install -c https://conda.anaconda.org/kne pybox2d && \
+    pip --no-cache-dir install \
+        tensorflow-gpu \
+        gym[classic_control] \
+        gym[box2d] \
+        baselines \
+        ipykernel \
+        jupyter \
+        numpy \
+        scipy \
+        sklearn \
+        pandas \
+        matplotlib \
+        setuptools \
+        pyglet \
+        pyopengl"
+
+# TensorBoard
+EXPOSE 6006
+# IPython
+EXPOSE 8888
+
+WORKDIR /code
+ENV PROJECT_PATH /code
+
+COPY . /code
+# Is this needed after we switched to use pyvirtualdisplay
+COPY xorg.conf /usr/share/X11/xorg.conf.d/xorg.conf
+
+RUN chmod +x /code/docker-entrypoint.sh
+
+ENTRYPOINT ["/code/docker-entrypoint.sh"]

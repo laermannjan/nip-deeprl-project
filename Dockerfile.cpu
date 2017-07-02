@@ -1,0 +1,29 @@
+FROM tensorflow/tensorflow:latest-py3
+
+LABEL maintainer "Jan Laermann <laermannjan@gmail.com>"
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libboost-all-dev \
+    libglu1-mesa \
+    libgl1-mesa-dev \
+    libxinerama1 \
+    libxcursor1 \
+    swig3.0 \
+    xvfb \
+    xorg-dev \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    ln -s /usr/bin/swig3.0 /usr/bin/swig
+
+RUN pip install \
+    box2d-py \
+    baselines
+
+WORKDIR /code
+ENV PROJECT_PATH /code
+COPY . /code
+RUN chmod +x /code/docker-entrypoint.sh
+
+ENTRYPOINT ["/code/docker-entrypoint.sh"]
