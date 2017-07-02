@@ -134,7 +134,7 @@ class DualMonitor(gym.Wrapper):
         self._epoche_td_errors = ed['epoche_td_errors']
 
 
-    def _reset_video_recorder(self):
+    def _reset_video_recorder(self, force=False):
         # Close all recorders
         if self._video_recorder:
             self._video_recorder.close()
@@ -143,7 +143,7 @@ class DualMonitor(gym.Wrapper):
             env=self.env,
             base_path=os.path.join(self._video_dir, 'video.episode_{:06}'
                                    .format(self._episode_id)),
-            enabled=self._video_enabled()
+            enabled=self._video_enabled() if not force else force
             )
         self._video_recorder.capture_frame()
 
@@ -166,10 +166,9 @@ class DualMonitor(gym.Wrapper):
                 # Write stats file
                 fname = 'episode_stats.{}.npz'.format(self._counter)
                 np.savez(os.path.join(self.directory, fname),
-                         episode_lengths=np.array(self._episode_lengths[-self.write_upon_reset:]),
-                         episode_rewards=np.array(self._episode_rewards[-self.write_upon_reset:]),
-                         episode_end_times=np.array(self._episode_end_times[-self.write_upon_reset:]),
-                         td_errors=np.array(self._epoche_td_errors[-self.write_upon_reset:])
+                         episode_lengths=np.array(self._episode_lengths[-self._write_freq:]),
+                         episode_rewards=np.array(self._episode_rewards[-self._write_freq:]),
+                         episode_end_times=np.array(self._episode_end_times[-self._write_freq:])
                      )
                 del self._episode_lengths[:-self._write_freq*2]
                 del self._episode_rewards[:-self._write_freq*2]
@@ -191,6 +190,8 @@ class DualMonitor(gym.Wrapper):
     def close(self):
         self._video_recorder.close()
         self._flush(force=True)
+        np.save(os.path.join(self.directory, 'epoche_td_errors.npy'),
+                np.array(self._epoche_td_errors))
 
     def _video_enabled(self):
         return self.video_callable(self._episode_id)

@@ -145,11 +145,13 @@ def train(args):
             replay_buffer.add(obs, action, rew, new_obs, float(done))
             obs = new_obs
 
-            if np.mean(info["rewards"][-100:]) > best_mean_rew:
-                best_mean_rew = np.mean(info["rewards"][-100:])
 
             if done:
+                if np.mean(info["rewards"][-100:]) > best_mean_rew:
+                    best_mean_rew = np.mean(info["rewards"][-100:])
                 obs = env.reset()
+                if info["episodes"] + 1 == args.num_episodes:
+                    env._reset_video_recorder(force=True)
 
             # if (num_iters > max(5 * args.batch_size, args.replay_buffer_size // 20) and # num_iters > args.min_t_learning
             if (num_iters > args.learning_delay and
@@ -184,6 +186,7 @@ def train(args):
                     "num_iters": num_iters,
                     "monitor_state": env.get_state()
             }
+
 
             if num_iters > 0 and num_iters % args.save_freq == 0:
                 maybe_save_model(args.save_dir,
