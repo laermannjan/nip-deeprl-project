@@ -430,6 +430,87 @@ bash distribute-tasks-your_name.sh
 ```
 > Be aware, because the scripts are designed to spawn parallel requests to Google's server you might see pretty strange suff on the console. Just wait for 30s after each of the last two scripts, press ENTER and see if nothing furher happens, then continue with the next one.
 
+### Create GPU ready instance
+Go to `Networking -> Firewall Rules` and create 2 new rules:
+1. jupyter, ip range `0.0.0.0/0`, tag `jupyter`, and ports `tcp:8888`
+2. tensorboard, ip range `0.0.0.0/0`, tag `tensorboard`, and ports `tcp:6006`
+
+Create a new VM with minimal settings and select to have `1` GPU.
+Add the networking tags from above: `jupyter` and `tensorboard`.
+
+In the VM install CUDA and set environment variables : `bash scripts/install-cuda.sh`
+
+Verify your installation with 
+```bash
+$ nvidia-smi
+
+###### expected output ###### 
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 375.66                 Driver Version: 375.66                    |
+|-------------------------------|----------------------|----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  Tesla K80           Off  | 0000:00:04.0     Off |                    0 |
+| N/A   35C    P8    27W / 149W |     15MiB / 11439MiB |      0%      Default |
++-------------------------------|----------------------|----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                       GPU Memory |
+|  GPU       PID  Type  Process name                               Usage      |
+|=============================================================================|
+|    0      2175    G   /usr/lib/xorg/Xorg                              15MiB |
++-----------------------------------------------------------------------------+
+```
+
+To install cudNN you need to register as an NVIDIA developer and download cudNN (v5.1 or above) from [here](https://developer.nvidia.com/cudnn ).
+Upload it to your VM via `gcloud compute scp /path/to/your/downloaded/cudnn.tar.gz VM-INSTANCE-NAME:~ --zone ZONE-OF-THIS-INSTANCE`
+And install it via 
+```bash
+$ cd
+$ tar xzvf cudnn-8.0-linux-x64-v5.1.tgz
+$ sudo cp cuda/lib64/* /usr/local/cuda/lib64/
+$ sudo cp cuda/include/cudnn.h /usr/local/cuda/include/
+$ rm -rf ~/cuda
+$ rm cudnn-8.0-linux-x64-v5.1.tgz
+```
+
+Install the correct docker with `bash scripts/install-docker-ce.sh`.
+
+And install the nvidia-docker plugin: 
+```bash
+wget https://github.com/NVIDIA/nvidia-docker/releases/download/v1.0.1/nvidia-docker_1.0.1-1_amd64.deb
+sudo dpkg -i nvidia-docker*.deb
+sudo nvidia-docker-plugin &
+```
+
+(This sometimes throws an error, like 'port already in use' or similar. Ignore and continue with following check)
+
+Check that you can access GPU inside container:
+```bash
+sudo nvidia-docker run --rm nvidia/cuda nvidia-smi
+
+###### expected output ###### 
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 375.66                 Driver Version: 375.66                    |
+|-------------------------------|----------------------|----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  Tesla K80           Off  | 0000:00:04.0     Off |                    0 |
+| N/A   35C    P8    27W / 149W |     15MiB / 11439MiB |      0%      Default |
++-------------------------------|----------------------|----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                       GPU Memory |
+|  GPU       PID  Type  Process name                               Usage      |
+|=============================================================================|
+|    0      2175    G   /usr/lib/xorg/Xorg                              15MiB |
++-----------------------------------------------------------------------------+
+```
+
+If everything worked out, go to GCE -> Snapshots and create a snapshot from this instance with its designated source disk!
+
 ## Project Plan
 
 - timeline
