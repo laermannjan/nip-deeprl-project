@@ -553,6 +553,41 @@ Adding convolutional layer via TF (from https://www.tensorflow.org/tutorials/lay
   
 ```  
 
+or create a CNN directly with cnn_to_mlp from baselines.deepq.models (https://github.com/openai/baselines/blob/master/baselines/deepq/models.py ):
+```python
+def cnn_to_mlp(convs, hiddens, dueling=False):
+
+    """This model takes as input an observation and returns values of all actions.
+    Parameters
+    ----------
+    convs: [(int, int int)]
+
+        list of convolutional layers in form of
+
+        (num_outputs, kernel_size, stride)
+
+    hiddens: [int]
+
+        list of sizes of hidden layers
+
+    dueling: bool
+
+        if true double the output MLP to compute a baseline
+
+        for action scores
+
+    Returns
+
+    -------
+
+    q_func: function
+
+        q_function for DQN algorithm.
+
+    """
+    return lambda *args, **kwargs: _cnn_to_mlp(convs, hiddens, dueling, *args, **kwargs)
+```
+
 Rendering environment as image (env is the specified environment):
 ```python
 env.render(return_rgb_array = mode=='rgb_array')
