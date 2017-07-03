@@ -104,7 +104,7 @@ def train(args):
             # -> epsilon is a const to prevent deviding by 0. formula is something like lr * x / (sqrt(x) +epsilon)
             # this may also depend on precision and maybe atari games were trained with half precision?!
             gamma=args.gamma,
-            grad_norm_clipping=None, # was 10, why? -> clipping helps to keeps gradients under control. not sure why this is favored over L2 norm here.
+            grad_norm_clipping=None if args.clip_grad is None else args.clip_grad, # was 10, why? -> clipping helps to keeps gradients under control. not sure why this is favored over L2 norm here.
             double_q=args.double_q
         )
 
