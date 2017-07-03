@@ -66,7 +66,7 @@ def maybe_load_model(savedir):
     """Load model if present at the specified path."""
     if savedir is None:
         return
-
+    
     state_path = os.path.join(os.path.join(savedir, 'training_state.pkl.zip'))
     found_model = os.path.exists(state_path)
     if found_model:
@@ -94,7 +94,7 @@ def train(args):
         set_global_seeds(args.seed)
         env.unwrapped.seed(args.seed)
 
-    with U.make_session(8) as sess:
+    with U.make_session(1) as sess:
         # Create training graph and replay buffer
         act, train, update_target, debug = deepq.build_train(
             make_obs_ph=lambda name: U.BatchInput(env.observation_space.shape, name=name), # Unit8Input is optimized int8 input for GPUs
@@ -104,7 +104,7 @@ def train(args):
             # -> epsilon is a const to prevent deviding by 0. formula is something like lr * x / (sqrt(x) +epsilon)
             # this may also depend on precision and maybe atari games were trained with half precision?!
             gamma=args.gamma,
-            grad_norm_clipping=None if args.clip_grad is None else args.clip_grad, # was 10, why? -> clipping helps to keeps gradients under control. not sure why this is favored over L2 norm here.
+            grad_norm_clipping=None if args.grad_clip is None else args.grad_clip, # was 10, why? -> clipping helps to keeps gradients under control. not sure why this is favored over L2 norm here.
             double_q=args.double_q
         )
 

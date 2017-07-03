@@ -520,6 +520,92 @@ sudo nvidia-docker run --rm nvidia/cuda nvidia-smi
 
 If everything worked out, go to GCE -> Snapshots and create a snapshot from this instance with its designated source disk!
 
+## Imagespace and conv2d layer  
+Adding convolutional layer via TF (from https://www.tensorflow.org/tutorials/layers) 
+(the dense layer is our first fully connected layer, everything else (except imagesize) can stay the same):
+```python
+# Input Layer
+  input_layer = tf.reshape(features, [-1, 28, 28, 1])
+
+  # Convolutional Layer #1
+  conv1 = tf.layers.conv2d(
+      inputs=input_layer,
+      filters=32,
+      kernel_size=[5, 5],
+      padding="same",
+      activation=tf.nn.relu)
+
+  # Pooling Layer #1
+  pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
+
+  # Convolutional Layer #2 and Pooling Layer #2
+  conv2 = tf.layers.conv2d(
+      inputs=pool1,
+      filters=64,
+      kernel_size=[5, 5],
+      padding="same",
+      activation=tf.nn.relu)
+  pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
+
+  # Dense Layer
+  pool2_flat = tf.reshape(pool2, [-1, 7 * 7 * 64])
+  dense = tf.layers.dense(inputs=pool2_flat, units=1024, activation=tf.nn.relu)
+  
+```  
+
+or create a CNN directly with cnn_to_mlp from baselines.deepq.models (https://github.com/openai/baselines/blob/master/baselines/deepq/models.py ):
+```python
+def cnn_to_mlp(convs, hiddens, dueling=False):
+
+    """This model takes as input an observation and returns values of all actions.
+    Parameters
+    ----------
+    convs: [(int, int int)]
+
+        list of convolutional layers in form of
+
+        (num_outputs, kernel_size, stride)
+
+    hiddens: [int]
+
+        list of sizes of hidden layers
+
+    dueling: bool
+
+        if true double the output MLP to compute a baseline
+
+        for action scores
+
+    Returns
+
+    -------
+
+    q_func: function
+
+        q_function for DQN algorithm.
+
+    """
+    return lambda *args, **kwargs: _cnn_to_mlp(convs, hiddens, dueling, *args, **kwargs)
+```
+
+Rendering environment as image (env is the specified environment):
+```python
+env.render(return_rgb_array = mode=='rgb_array')
+```
+-> mode is defined in ENV mode = ['human','rgb_array']
+-> Return an numpy.ndarray with shape (x, y, 3),
+   representing RGB values for an x-by-y pixel image, suitable
+   for turning into a video.
+Converting RGB to grayscale (from https://www.tensorflow.org/api_docs/python/tf/image/rgb_to_grayscale):
+```python
+import tf.image.rgb_to_grayscale
+
+rgb_to_grayscale(
+    images,
+    name=None
+)
+```
+
 ## Project Plan
 
 - timeline

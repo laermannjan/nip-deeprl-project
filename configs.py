@@ -17,24 +17,6 @@ Configs = {
         'augmented_reward': None,
         'save_freq': 3000*20,
     },
-    'LL_basic': {
-        'env': 'LunarLander-v2',
-        'arch': [64],
-        'gamma': 0.99,
-        'lr':5e-4,
-        'num_steps': 500*2000,
-        'num_episodes': 1000*5,
-        'max_episode_steps': None,
-        'schedule_timesteps': 500*20,
-        'initial_p': 1.0,
-        'final_p': 0.01,
-        'learning_freq': 1, # critical parameter
-        'target_update_freq': 500*2,
-        'replay_buffer_size': 500*100,
-        'batch_size': 32,
-        'augmented_reward': None,
-        'save_freq': 500*20,
-    },
     'CP_basic': {
         'env': 'CartPole-v0',
         'arch': [64],
@@ -52,15 +34,15 @@ Configs = {
         'augmented_reward': None,
         'save_freq': 500*20,
     },
-    'LL_basic_test0': {
+	'LL_basic': {
         'env': 'LunarLander-v2',
         'arch': [64],
         'gamma': 0.99,
         'lr':5e-4,
         'num_steps': 500*200,
-        'num_episodes': 1000*5,
+        'num_episodes': 1000*10,
         'max_episode_steps': None,
-        'schedule_timesteps': 500*20, # just a very small fraction
+        'schedule_timesteps': 500*20,
         'initial_p': 1.0,
         'final_p': 0.01,
         'learning_freq': 1, # critical parameter
@@ -70,258 +52,77 @@ Configs = {
         'augmented_reward': None,
         'save_freq': 500*20,
     },
-    'LL_basic_test1': {
-        'env': 'LunarLander-v2',
-        'arch': [64],
-        'gamma': 0.99,
-        'lr':5e-4,
-        'num_steps': 500*2000,
-        'num_episodes': 1000*5,
-        'max_episode_steps': None,
+	#larger exploration (500*500)
+    'LL_e500': {   
+		'env': 'LunarLander-v2',
         'schedule_timesteps': 500*500, # 10% of approx. all steps within num_episodes
-        'initial_p': 1.0,
-        'final_p': 0.01,
-        'learning_freq': 1, # critical parameter
-        'target_update_freq': 500*2,
-        'replay_buffer_size': 500*100,
-        'batch_size': 32,
-        'augmented_reward': None,
-        'save_freq': 500*20,
     },
-    'LL_basic_test2': {
-        'env': 'LunarLander-v2',
-        'arch': [16, 16],
-        'gamma': 0.99,
-        'lr':5e-4,
-        'num_steps': 500*2000,
-        'num_episodes': 1000*5,
-        'max_episode_steps': None,
-        'schedule_timesteps': 500*200, #some middle ground
-        'initial_p': 1.0,
-        'final_p': 0.01,
-        'learning_freq': 1, # critical parameter
-        'target_update_freq': 500*2,
-        'replay_buffer_size': 500*100,
-        'batch_size': 32,
-        'augmented_reward': None,
-        'save_freq': 500*20,
-    },
-    'LL_repbuf_large': {
+	#larger Replaybuffer (250*500)
+    'LL_rpb250': {
         'env': 'LunarLander-v2',
         'replay_buffer_size': 500*250
     },
-    'LL_repbuf_even_larger': {
+	#larger replaybuffer (500*500)
+    'LL_rpb500': {
         'env': 'LunarLander-v2',
         'replay_buffer_size': 500*500
     },
-    'LL_repbuf_large_longer_schedule': {
+	#clip gradients (10)
+    'LL_gc10': {
         'env': 'LunarLander-v2',
-        'replay_buffer_size': 500*250,
-        'schedule_timesteps': 500*500
+        'grad_clip': 10 ,
     },
-    'LL_repbuf_even_larger_longer_schedule': {
+	#clip gradients (5)
+    'LL_gc5': {
         'env': 'LunarLander-v2',
-        'replay_buffer_size': 500*500,
-        'schedule_timesteps': 500*500
+        'grad_clip': 5 ,
     },
-    'LL_e1_short_in': {
+	#priotizes sampling (alpha 0.2)
+    'LL_prio1': {
         'env': 'LunarLander-v2',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*300,
-        'arch': [128, 192, 256]
+        'prioritized': True,
+		'prioritized_alpha': 0.2,
+		'prioritized_beta0': 0.5,
     },
-    'LL_e1_short_eq': {
+	#priotizes sampling (alpha 0.8)
+    'LL_prio2': {
         'env': 'LunarLander-v2',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*300,
-        'arch': [128, 128, 128]
+        'prioritized': True,
+		'prioritized_alpha': 0.8,
+		'prioritized_beta0': 0.5,
     },
-    'LL_e1_short_de': {
+	#2nd layer (64-64)
+    'LL_64_64': {
         'env': 'LunarLander-v2',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*300,
-        'arch': [256, 192, 128]
+        'arch': [64, 64],
     },
-    'LL_e1_long_in': {
+	#2nd layer (64-32)
+    'LL_64_32': {
         'env': 'LunarLander-v2',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*800,
-        'arch': [128, 192, 256]
+        'arch': [64, 32],
     },
-    'LL_e1_long_eq': {
+	#2nd layer (64-96)
+    'LL_64_96': {
         'env': 'LunarLander-v2',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*800,
-        'arch': [128, 128, 128]
+        'arch': [64, 96],
     },
-    'LL_e1_long_de': {
+	
+	# train less (/50 steps)
+    'LL_frqz50': {
         'env': 'LunarLander-v2',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*800,
-        'arch': [256, 192, 128]
+        'learning_freq': 50,
     },
-    'LL_e10_short_in': {
+	# train less, update more (100 batches /50 steps)
+    'LL_frqz50_smp100': {
         'env': 'LunarLander-v2',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*300,
-        'arch': [128, 192, 256]
+        'learning_freq': 50,
+		'num_samples': 100,
     },
-    'LL_e10_short_eq': {
+	# update more (100 batches /1 steps)
+    'LL_frqz1_smp100': {
         'env': 'LunarLander-v2',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*300,
-        'arch': [128, 128, 128]
+		'num_samples': 100,
     },
-    'LL_e10_short_de': {
-        'env': 'LunarLander-v2',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*300,
-        'arch': [256, 192, 128]
-    },
-    'LL_e10_long_in': {
-        'env': 'LunarLander-v2',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*800,
-        'arch': [128, 192, 256]
-    },
-    'LL_e10_long_eq': {
-        'env': 'LunarLander-v2',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*800,
-        'arch': [128, 128, 128]
-    },
-    'LL_e10_long_de': {
-        'env': 'LunarLander-v2',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*800,
-        'arch': [256, 192, 128]
-    },
-    'AB_e1_short_in': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.01,
-        'schedule_timesteps': 3000*100,
-        'arch': [128, 192, 256]
-    },
-    'AB_e1_short_eq': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.01,
-        'schedule_timesteps': 3000*100,
-        'arch': [128, 128, 128]
-    },
-    'AB_e1_short_de': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.01,
-        'schedule_timesteps': 3000*100,
-        'arch': [256, 192, 128]
-    },
-    'AB_e1_long_in': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.01,
-        'schedule_timesteps': 5000*300,
-        'arch': [128, 192, 256]
-    },
-    'AB_e1_long_eq': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.01,
-        'schedule_timesteps': 3000*300,
-        'arch': [128, 128, 128]
-    },
-    'AB_e1_long_de': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.01,
-        'schedule_timesteps': 3000*300,
-        'arch': [256, 192, 128]
-    },
-    'AB_e10_short_in': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.1,
-        'schedule_timesteps': 3000*100,
-        'arch': [128, 192, 256]
-    },
-    'AB_e10_short_eq': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.1,
-        'schedule_timesteps': 5000*100,
-        'arch': [128, 128, 128]
-    },
-    'AB_e10_short_de': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.1,
-        'schedule_timesteps': 3000*100,
-        'arch': [256, 192, 128]
-    },
-    'AB_e10_long_in': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.1,
-        'schedule_timesteps': 3000*300,
-        'arch': [128, 192, 256]
-    },
-    'AB_e10_long_eq': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.1,
-        'schedule_timesteps': 3000*300,
-        'arch': [128, 128, 128]
-    },
-    'AB_e10_long_de': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.1,
-        'schedule_timesteps': 3000*300,
-        'arch': [256, 192, 128]
-    },
-    'LL_e1_short_eq_prio': {
-        'env': 'LunarLander-v2',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*300,
-        'arch': [128, 128, 128],
-        'prioritized': True
-    },
-    'LL_e1_long_eq_prio': {
-        'env': 'LunarLander-v2',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*800,
-        'arch': [128, 128, 128],
-        'prioritized': True
-    },
-    'LL_e10_short_eq_prio': {
-        'env': 'LunarLander-v2',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*300,
-        'arch': [128, 128, 128],
-        'prioritized': True
-    },
-    'LL_e10_long_eq_prio': {
-        'env': 'LunarLander-v2',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*800,
-        'arch': [128, 128, 128],
-        'prioritized': True
-    },
-    'AB_e1_short_eq_prio': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*300,
-        'arch': [128, 128, 128],
-        'prioritized': True
-    },
-    'AB_e1_long_eq_prio': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.01,
-        'schedule_timesteps': 500*800,
-        'arch': [128, 128, 128],
-        'prioritized': True
-    },
-    'AB_e10_short_eq_prio': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*300,
-        'arch': [128, 128, 128],
-        'prioritized': True
-    },
-    'AB_e10_long_eq_prio': {
-        'env': 'Acrobot-v1',
-        'final_p': 0.1,
-        'schedule_timesteps': 500*800,
-        'arch': [128, 128, 128],
-        'prioritized': True
-    },
+	
+	#TODO Softmax TD learning
 }
