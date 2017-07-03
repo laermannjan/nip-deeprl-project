@@ -66,7 +66,7 @@ def maybe_load_model(savedir):
     """Load model if present at the specified path."""
     if savedir is None:
         return
-
+    
     state_path = os.path.join(os.path.join(savedir, 'training_state.pkl.zip'))
     found_model = os.path.exists(state_path)
     if found_model:
@@ -94,7 +94,7 @@ def train(args):
         set_global_seeds(args.seed)
         env.unwrapped.seed(args.seed)
 
-    with U.make_session(8) as sess:
+    with U.make_session(1) as sess:
         # Create training graph and replay buffer
         act, train, update_target, debug = deepq.build_train(
             make_obs_ph=lambda name: U.BatchInput(env.observation_space.shape, name=name), # Unit8Input is optimized int8 input for GPUs
