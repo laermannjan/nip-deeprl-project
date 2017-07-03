@@ -13,7 +13,13 @@ zones=( "europe-west1-d" "europe-west2-a" "us-east4-c" "us-east1-b" "us-central1
 
 # ONLY CHANGE THIS ###########################
 exps=(
-    'LL_basic'
+    'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic'
+    'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500'
+    'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250'
+    'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500'
+    'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10'
+    'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5'
+    'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1'
 )
 remote=0 # Set to one if docker should be built on the server
 #################################################
@@ -40,9 +46,7 @@ for ((e=0;e<${#exps[@]};++e)); do
                 )
     cron_scp=(gcloud compute scp $REPO_ROOT/gce/rsync-gstorage-bucket instance-$e:~ --zone ${zones[zone]})
     cron_setup=(gcloud compute ssh instance-$e --project $PROJECT_NAME --zone ${zones[zone]} -- \
-                       "echo '* * * * *   root    /usr/bin/gsutil -m rsync -r /home/${USER}/data gs://${BUCKET_NAME} > /home/${USER}/CRON.log' > ~/rsync-gstorage-bucket && \
-                       sudo chown root:root ~/rsync-gstorage-bucket && \
-                       sudo mv ~/rsync-gstorage-bucket /etc/cron.d/"
+                       "echo '* * * * * /usr/bin/gsutil -m rsync -r /home/${USER}/data gs://${BUCKET_NAME} > /home/${USER}/CRON.log' | sudo crontab"
                 )
     docker_scp=(gcloud compute scp --recurse $REPO_ROOT/scripts/ instance-$e:~ --zone ${zones[zone]})
     docker_local=(gcloud compute ssh instance-$e \
@@ -69,7 +73,7 @@ for ((e=0;e<${#exps[@]};++e)); do
                   )
     if [ $remote -eq 0 ]; then
         ${gcloud_init[@]} &
-        sleep 1s && "${cron_setup[@]}" && "${docker_scp[@]}" && "${docker_local[@]}"
+        sleep 1m && "${cron_setup[@]}" && "${docker_scp[@]}" && "${docker_local[@]}" &
     else
         ${gcloud_init[@]} &
         sleep 1m && "${cron_setup[@]}" && "${docker_scp[@]}" && "${docker_remote_scp[@]}" && "${docker_remote[@]}" &
