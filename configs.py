@@ -19,19 +19,19 @@ Configs = {
     },
     'LL_basic': {
         'env': 'LunarLander-v2',
-        'arch': [50, 50, 50],
+        'arch': [64],
         'gamma': 0.99,
-        'lr':5e-3,
-        'num_steps': 500*4000,
-        'num_episodes': 500*20,
-        'max_episode_steps': 500,
-        'schedule_timesteps': 500*500,
+        'lr':5e-4,
+        'num_steps': 500*2000,
+        'num_episodes': 1000*5,
+        'max_episode_steps': None,
+        'schedule_timesteps': 500*20,
         'initial_p': 1.0,
-        'final_p': 0.1,
-        'learning_freq': 50, # critical parameter
-        'target_update_freq': 500*30,
-        'replay_buffer_size': 500*20,
-        'batch_size': 100,
+        'final_p': 0.01,
+        'learning_freq': 1, # critical parameter
+        'target_update_freq': 500*2,
+        'replay_buffer_size': 500*100,
+        'batch_size': 32,
         'augmented_reward': None,
         'save_freq': 500*20,
     },
@@ -105,6 +105,24 @@ Configs = {
         'batch_size': 32,
         'augmented_reward': None,
         'save_freq': 500*20,
+    },
+    'LL_repbuf_large': {
+        'env': 'LunarLander-v2',
+        'replay_buffer_size': 500*250
+    },
+    'LL_repbuf_even_larger': {
+        'env': 'LunarLander-v2',
+        'replay_buffer_size': 500*500
+    },
+    'LL_repbuf_large_longer_schedule': {
+        'env': 'LunarLander-v2',
+        'replay_buffer_size': 500*250,
+        'schedule_timesteps': 500*500
+    },
+    'LL_repbuf_even_larger_longer_schedule': {
+        'env': 'LunarLander-v2',
+        'replay_buffer_size': 500*500,
+        'schedule_timesteps': 500*500
     },
     'LL_e1_short_in': {
         'env': 'LunarLander-v2',
