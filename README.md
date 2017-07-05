@@ -520,6 +520,54 @@ sudo nvidia-docker run --rm nvidia/cuda nvidia-smi
 
 If everything worked out, go to GCE -> Snapshots and create a snapshot from this instance with its designated source disk!
 
+## Experience replay buffer
+We use the prioritizes replay buffer from the baseline implementation, which takes the parameter:
+```python
+    def __init__(self, size, alpha):
+        """Create Prioritized Replay buffer.
+        Parameters
+        ----------
+        size: int
+            Max number of transitions to store in the buffer. When the buffer
+            overflows the old memories are dropped.
+        alpha: float
+            how much prioritization is used
+            (0 - no prioritization, 1 - full prioritization)
+
+```
+Note that the standard replay buffer corresponds to the prioritized replay buffer with alpha = 0.
+In addition to the basic case we examine alpha \in {0.2 , 0.8}
+
+When we take a minibatch we sample according to:
+```python
+    def sample(self, batch_size, beta):
+        """Sample a batch of experiences.
+        compared to ReplayBuffer.sample
+        it also returns importance weights and idxes
+        of sampled experiences.
+        Parameters
+        ----------
+        batch_size: int
+            How many transitions to sample.
+        beta: float
+            To what degree to use importance weights
+            (0 - no corrections, 1 - full correction)
+
+```
+For our experiments we fix beta = 0.5 .
+
+The baseline (prioritized) replay buffer is filled according to the FIFO method, e.g. when the buffer overflows the old memories are dropped. 
+The paper "Off-policy experience retention for deep actor-critic learning" proposes to separate the replay buffer D. 
+This is motivated by the fact that due to the decreasing exploration rate the samples in the replay buffer might not cover the full domain of the function we are learning. So information over a previosly learned function over certain parts of our domain might get lost. 
+They propose to split in replay buffer D into two equally sized parts A and B. Part A is a standard FIFO replay buffer. 
+
+They define for each sample the off policy score:
+OFFPOL score(i) = (|| |a_i - pi(s_i|policy)||_2)^2. 
+If B is full and t new samples occur the t samples with the lowest OFFPOL score are overwritten such that we keep the experience in the buffer that differ the most from out current policy.
+In this setting we introduce a further parameter omega and sample with probability omega from A and with prob. (1-omega) from B.
+To pick a specific sample from A or B we could use the baseline sample function. 
+
+We could examine if the periodic occurence of dips in the reward of the LL_basic changes with the change in the (prioritized) replay buffer.
 ## Imagespace and conv2d layer  
 Adding convolutional layer via TF (from https://www.tensorflow.org/tutorials/layers) 
 (the dense layer is our first fully connected layer, everything else (except imagesize) can stay the same):
