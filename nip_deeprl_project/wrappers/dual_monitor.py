@@ -151,7 +151,7 @@ class DualMonitor(gym.Wrapper):
     def _flush(self, force=False):
         if self.write_upon_reset or force:
             fname = 'replay_buffer.episode_{}.npz'.format(self._episode_id)
-            np.savez(os.path.join(self.directory, fname),
+            np.savez_compressed(os.path.join(self.directory, fname),
                      observations=np.array(self._observations),
                      actions=np.array(self._actions),
                      rewards=np.array(self._rewards),
@@ -165,7 +165,7 @@ class DualMonitor(gym.Wrapper):
             if self._episode_id % self._write_freq == 0 or force:
                 # Write stats file
                 fname = 'episode_stats.{}.npz'.format(self._counter)
-                np.savez(os.path.join(self.directory, fname),
+                np.savez_compressed(os.path.join(self.directory, fname),
                          episode_lengths=np.array(self._episode_lengths[-self._write_freq:]),
                          episode_rewards=np.array(self._episode_rewards[-self._write_freq:]),
                          episode_end_times=np.array(self._episode_end_times[-self._write_freq:])
