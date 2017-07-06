@@ -4,6 +4,7 @@ import os
 import tempfile
 import time
 import itertools
+import shutil
 
 import tensorflow as tf
 
@@ -51,8 +52,13 @@ def maybe_save_model(savedir, state, pickle_name=None):
     if savedir is None:
         return
     start_time = time.time()
-    model_dir = "model.step{}".format(state["num_iters"])
-    U.save_state(os.path.join(savedir, MODELS_DIR, model_dir, "saved"))
+    model_dir = os.path.join(savedir, MODELS_DIR, "model.step{}".format(state["num_iters"]))
+    U.save_state(os.path.join(model_dir, "saved"))
+    shutil.make_archive(model_dir,
+                        'xztar',
+                        model_dir)
+
+    shutil.rmtree(model_dir)
     if pickle_name is not None:
         fname = '{}.pkl.zip'.format(pickle_name)
         if not os.path.exists(os.path.join(savedir, PICKLE_DIR)):
@@ -63,16 +69,22 @@ def maybe_save_model(savedir, state, pickle_name=None):
 
 
 def maybe_load_model(savedir):
+    # TODO: untested and probably broken
     """Load model if present at the specified path."""
     if savedir is None:
         return
-    
+
     state_path = os.path.join(os.path.join(savedir, 'training_state.pkl.zip'))
     found_model = os.path.exists(state_path)
     if found_model:
         state = pickle_load(state_path, compression=True)
         model_dir = "model.step{}".format(state["num_iters"])
+        os.mkdir(os.path.join(savedir, model_dir))
+        shutil.unpack_archive(os.path.join(savedir, MODEL_DIR, '{}.tar.xz'.format(model_dir)),
+                              'xztar',
+                              os.path.join(savedir, MODEL_DIR, model_dir))
         U.load_state(os.path.join(savedir, model_dir, "saved"))
+        shutil.rmtree(os.path.join(save_dir, model_dir))
         logger.log("Loaded models checkpoint at {} iterations".format(state["num_iters"]))
         return state
 
