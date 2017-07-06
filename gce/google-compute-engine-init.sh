@@ -16,8 +16,8 @@ for ((z=0;z<${#zones[@]};++z)); do
                     --zone "${zones[z]}" \
                     --machine-type "custom-1-6656" \
                     --subnet "default" \
+                    --scopes "https://www.googleapis.com/auth/cloud-platform" \
                     --metadata "^#&&#^google-container-manifest={\u000a  \"apiVersion\": \"v1\",\u000a  \"kind\": \"Pod\",\u000a  \"metadata\": {\u000a    \"name\": \"instance-$n\"\u000a  },\u000a  \"spec\": {\u000a    \"containers\": [\u000a      {\u000a        \"name\": \"instance-$n\",\u000a        \"image\": \"$GCR_IMAGE\",\u000a        \"imagePullPolicy\": \"Always\"\u000a      }\u000a    ]\u000a  }\u000a}#&&#user-data=#cloud-config\u000aruncmd:\u000a- [ '/usr/bin/kubelet', '--allow-privileged=false', '--manifest-url=http://metadata.google.internal/computeMetadata/v1/instance/attributes/google-container-manifest', '--manifest-url-header=Metadata-Flavor:Google' ]#&&#gci-ensure-gke-docker=true" --maintenance-policy "MIGRATE" --service-account "$GOOGLE_SERVICE_ACCOUNT" --scopes "https://www.googleapis.com/auth/devstorage.read_only","https://www.googleapis.com/auth/logging.write","https://www.googleapis.com/auth/monitoring.write","https://www.googleapis.com/auth/servicecontrol","https://www.googleapis.com/auth/service.management.readonly","https://www.googleapis.com/auth/trace.append" --image "cos-stable-59-9460-64-0" --image-project "cos-cloud" --boot-disk-size "50" --boot-disk-type "pd-standard" --boot-disk-device-name "instance-$n")
         "${cmd[@]}" &
     done
 done
-
