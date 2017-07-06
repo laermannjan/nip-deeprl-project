@@ -5,22 +5,13 @@ ssh-add ~/.ssh/google_compute_engine
 
 zones=( "europe-west1-d" "europe-west2-a" "us-east4-c" "us-east1-b" "us-central1-a" "us-west1-a" "asia-east1-a" "asia-southeast1-a")
 exps=(
-    'LL_e1_short_in' 'LL_e1_short_in' 'LL_e1_short_in' 'LL_e1_short_in' 'LL_e1_short_in'
-    'LL_e1_short_eq' 'LL_e1_short_eq' 'LL_e1_short_eq' 'LL_e1_short_eq' 'LL_e1_short_eq'
-    'LL_e1_short_de' 'LL_e1_short_de' 'LL_e1_short_de' 'LL_e1_short_de' 'LL_e1_short_de'
-    'LL_e1_long_in' 'LL_e1_long_in' 'LL_e1_long_in' 'LL_e1_long_in' 'LL_e1_long_in'
-    'LL_e1_long_eq' 'LL_e1_long_eq' 'LL_e1_long_eq' 'LL_e1_long_eq' 'LL_e1_long_eq'
-    'LL_e1_long_de' 'LL_e1_long_de' 'LL_e1_long_de' 'LL_e1_long_de' 'LL_e1_long_de'
-    'LL_e10_short_in' 'LL_e10_short_in' 'LL_e10_short_in' 'LL_e10_short_in' 'LL_e10_short_in'
-    'LL_e10_short_eq' 'LL_e10_short_eq' 'LL_e10_short_eq' 'LL_e10_short_eq' 'LL_e10_short_eq'
-    'LL_e10_short_de' 'LL_e10_short_de' 'LL_e10_short_de' 'LL_e10_short_de' 'LL_e10_short_de'
-    'LL_e10_long_in' 'LL_e10_long_in' 'LL_e10_long_in' 'LL_e10_long_in' 'LL_e10_long_in'
-    'LL_e10_long_eq' 'LL_e10_long_eq' 'LL_e10_long_eq' 'LL_e10_long_eq' 'LL_e10_long_eq'
-    'LL_e10_long_de' 'LL_e10_long_de' 'LL_e10_long_de' 'LL_e10_long_de' 'LL_e10_long_de'
-    'LL_e1_short_eq_prio'
-    'LL_e1_long_eq_prio'
-    'LL_e10_short_eq_prio'
-    'LL_e10_long_eq_prio'
+    'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic' 'LL_basic'
+    'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500' 'LL_e500'
+    'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250' 'LL_rpb250'
+    'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500' 'LL_rpb500'
+    'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10' 'LL_gc10'
+    'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5' 'LL_gc5'
+    'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1' 'LL_prio1'
 )
 # Pull newest docker image
 # and 
@@ -35,7 +26,7 @@ for ((z=0;z<${#zones[@]};++z)); do
                     docker pull $GCR_IMAGE \&\&
                     docker run -d \
                            -v /home/$USER/data:/mnt/data $GCR_IMAGE \
-                           --config ${exps[n]} --repeat 2 \
+                           --config ${exps[n]} \
                            --write-upon-reset --capture-videos")
         "${cmd[@]}" &
     done
