@@ -25,7 +25,7 @@ for ((z=0;z<${#zones[@]};++z)); do
         extract=(tar xvf data.instance-$n.tar)
         cleanup_local=(rm data.instance-$n.tar)
 
-        ${ssh[@]} && ${scp[@]} && ${cleanup_remote[@]} && ${extract[@]} ${cleanup_local[@]}&
+        ${ssh[@]} && ${scp[@]} && ${cleanup_remote[@]} && ${extract[@]} && ${cleanup_local[@]}&
         pids+=("$!")
     done
 done
