@@ -10,4 +10,6 @@ With to few neurons, the learning fails. This seems kidna straight forward, sinc
 A maybe similar beavior can be seen with the Acrobot, where too few neurons (10-10-10) just oscilate without moving the limbs, and too many neurons (512-256-128) converge to slower solutions (~700 steps/episode average in the end - often with faster solutions earlier from which they diverge) while a small network (100-80) consistently found fast solutions around 200 steps/episode and didn't diverge again.  
 The verdict about the effect of neuron arrangement is still out, but decreasing number of nodes seem to converge faster than equally spread neurons. We're running experients with (128-128-128) (128-192-256) (256-192-128) layer and different exploration rates (final e: 10%/1%) and shorter and longer annealing, for Acrobot-v1 and Lunarlander-v2.
 
-
+## Acrobot Second limb spinns like crazy
+Sometimes the Acrobot is in a state where he spinns the second limb with high frequency without achieving anything. 
+The reason might be the following. The Acrobot gained a high momentum according to which it evolves. As a result the next state of the AB is determined largly by the current state and close to independent from the action we take. This might lead to useless gradients and updates since the system can't learn in such a situation.  
