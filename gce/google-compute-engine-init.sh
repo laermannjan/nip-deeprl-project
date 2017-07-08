@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $DIR/set-env.sh
 if [ -z ${REPO_ROOT+x} ]; then echo "\$REPO_ROOT must be set to the root of nip-deeprl-project git clone."; exit; else cd $REPO_ROOT; fi
 if [ -z ${GCR_IMAGE+x} ]; then echo "\$GCR_IMAGE must be set to the name of your docker image on gcr.io."; exit; fi
 if [ -z ${GOOGLE_SERVICE_ACCOUNT+x} ]; then echo "\$GOOGLE_SERVICE_ACCOUNT is not set. You can get this from GCE VMs Webinterface -> Create Instance -> (at the very bottom in blue) View this as command-line"; exit; fi
 if [ -z ${PROJECT_NAME+x} ]; then echo "\$PROJECT_NAME must be set to the name you gave your project on Google Cloud Platform."; exit; fi
 ssh-add ~/.ssh/google_compute_engine
 
-zones=( "europe-west1-d" "europe-west2-a" "us-east4-c" "us-east1-b" "us-central1-a" "us-west1-a" "asia-east1-a" "asia-southeast1-a")
-
 for ((z=0;z<${#zones[@]};++z)); do
     for i in {0..7}; do
         n=$(($z * 8 + $i))
+        if [ $n -eq ${#exps[@]} ]; then exit; fi
+
         cmd=(gcloud compute --project "$PROJECT_NAME" \
                     instances create "instance-$n" \
                     --zone "${zones[z]}" \
