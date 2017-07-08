@@ -141,18 +141,21 @@ Configs = {
 	# search a stable AB basic
     'AB_64': {
         'env': 'Acrobot-v1',
+	    'num_episodes': 500*4,
 		'arch': [64],
     },	
 	# search a stable AB basic
     'AB_64-64-1000': {
         'env': 'Acrobot-v1',
 		'max_episode_steps': 1000,
+	    'num_episodes': 500*4,
 
     },
 	# search a stable AB basic
     'AB_64-1000': {
         'env': 'Acrobot-v1',
 		'arch': [64],
+	    'num_episodes': 500*4,
 		'max_episode_steps': 1000,
     },
 	#TODO Softmax TD learning
