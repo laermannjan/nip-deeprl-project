@@ -1,12 +1,12 @@
 Configs = {
     'AB_basic': {
         'env': 'Acrobot-v1',
-        'arch': [64, 64, 64],
+        'arch': [64, 64], #prev 3 layer
         'gamma': 0.99,
         'lr':5e-3,
         'num_steps': 500*6000,
         'num_episodes': 500*20,
-        'max_episode_steps': 3000, 
+        'max_episode_steps': 500, #prev 3000
         'schedule_timesteps': 3000*100,
         'initial_p': 1.0,
         'final_p': 0.1,
@@ -138,6 +138,22 @@ Configs = {
         'env': 'LunarLander-v2',
         'grad_clip': 20
     },
+	# search a stable AB basic
+    'AB_64': {
+        'env': 'Acrobot-v1',
+		'arch': [64],
+    },	
+	# search a stable AB basic
+    'AB_64-64-1000': {
+        'env': 'Acrobot-v1',
+		'max_episode_steps': 1000,
 
+    },
+	# search a stable AB basic
+    'AB_64-1000': {
+        'env': 'Acrobot-v1',
+		'arch': [64],
+		'max_episode_steps': 1000,
+    },
 	#TODO Softmax TD learning
 }
