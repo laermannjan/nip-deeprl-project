@@ -147,8 +147,7 @@ def train(args):
         obs = env.reset()
 
         # Main trianing loop
-		train_arr = np.zeros((800,1200,3))*1. # array to save 4 images in 
-		
+		train_arr = np.zeros((800,1200,3))*1. # array to save 4 images in
         for num_iters in itertools.count(num_iters):
             pickle_this, pickle_name = False, None
             # Take action and store transition in the replay buffer.
