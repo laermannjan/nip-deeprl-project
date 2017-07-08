@@ -100,7 +100,7 @@ def train(args):
     savedir = args.save_dir
     # Create and seed the env.
     env = make_env(args.env, args, _max_episode_steps=args.max_episode_steps)
-    model = deepq.models.mlp(args.arch)
+    model = deepq.models.cnn_to_mlp( (4,[5,5],2),args.arch)
     # model = my_model
     if args.seed > 0:
         set_global_seeds(args.seed)
@@ -109,7 +109,7 @@ def train(args):
     with U.make_session(1) as sess:
         # Create training graph and replay buffer
         act, train, update_target, debug = deepq.build_train(
-            make_obs_ph=lambda name: U.BatchInput(env.observation_space.shape, name=name), # Unit8Input is optimized int8 input for GPUs
+            make_obs_ph=lambda name: U.BatchInput(env.rander('rgb_array').shape, name=name), # Unit8Input is optimized int8 input for GPUs
             q_func=model,
             num_actions=env.action_space.n,
             optimizer=tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=1e-8), # often 1e-4 for atari games, why?
@@ -147,14 +147,41 @@ def train(args):
         obs = env.reset()
 
         # Main trianing loop
+		train_arr = np.zeros((800,1200,3))*1. # array to save 4 images in 
+		
         for num_iters in itertools.count(num_iters):
             pickle_this, pickle_name = False, None
             # Take action and store transition in the replay buffer.
             update_eps = exploration.value(num_iters)
-            action = act(np.array(obs)[None], update_eps=update_eps)[0]
-            env.record_exploration(update_eps)
-            new_obs, rew, done, info = env.step(action)
-            replay_buffer.add(obs, action, rew, new_obs, float(done))
+            
+			obs = train_arr
+			rew_stack = 0
+			action = act(train_arr, update_eps=update_eps)[0]
+			new_obs, rew, done, info = env.step(action)
+			rew_stack += rew
+			obs1 = env.render('rgb_array')
+			
+			new_obs, rew, done, info = env.step(action)
+			rew_stack += rew
+			obs2 = env.render('rgb_array')
+			
+			new_obs, rew, done, info = env.step(action)
+			rew_stack += rew
+			obs3 = env.render('rgb_array')
+			
+			new_obs, rew, done, info = env.step(action)
+			rew_stack += rew
+			obs4 = env.render('rgb_array')
+			
+			train_arr[:obs1.shape[0],:obs1.shape[1],:] = obs1*1.
+			train_arr[:obs1.shape[0],obs1.shape[1]:,:] = obs2*1.
+			train_arr[obs1.shape[0]:,:obs1.shape[1],:] = obs3*1.
+			train_arr[obs1.shape[0]:,obs1.shape[1]:,:] = obs4*1.
+			
+			
+			new_obs = train_arr
+			env.record_exploration(update_eps)
+            replay_buffer.add(obs, action, rew, new_obs, float(done)) # change color channels to give grayscale img instead of RGB
             obs = new_obs
 
 
