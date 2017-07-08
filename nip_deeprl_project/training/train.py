@@ -120,7 +120,8 @@ def train(args):
             double_q=args.double_q
         )
 
-        approximate_num_iters = args.num_steps / 4
+        approximate_num_iters = args.num_steps if args.num_episodes is None else args.num_episodes * env._max_episode_steps / 2.
+        aproximate_num_iters /= 4
         exploration = LinearSchedule(schedule_timesteps=args.schedule_timesteps,
                                      initial_p=args.initial_p,
                                      final_p=args.final_p)
