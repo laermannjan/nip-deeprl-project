@@ -100,7 +100,7 @@ def train(args):
     savedir = args.save_dir
     # Create and seed the env.
     env = make_env(args.env, args, _max_episode_steps=args.max_episode_steps)
-    model = deepq.models.cnn_to_mlp( (4,[5,5],2),args.arch)
+    model = deepq.models.cnn_to_mlp( [(32, 8, 4), (64, 4, 2), (64, 3, 1)],args.arch)
     # model = my_model
     if args.seed > 0:
         set_global_seeds(args.seed)
