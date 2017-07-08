@@ -106,7 +106,6 @@ Configs = {
         'env': 'LunarLander-v2',
         'arch': [64, 96],
     },
-	
 	# train less (/50 steps)
     'LL_frqz50': {
         'env': 'LunarLander-v2',
@@ -123,6 +122,22 @@ Configs = {
         'env': 'LunarLander-v2',
 		'num_samples': 100,
     },
-	
+    # extended exploration + larger rp buffer
+    'LL_e500_rpb500': {
+        'env': 'LunarLander-v2',
+        'schedule_timesteps': 500*500,
+        'replay_buffer_size' : 500*500
+    },
+    # heavy gradient clipping
+    'LL_gc1': {
+        'env': 'LunarLander-v2',
+        'grad_clip': 1
+    },
+    # very minor clipping
+    'LL_gc20': {
+        'env': 'LunarLander-v2',
+        'grad_clip': 20
+    },
+
 	#TODO Softmax TD learning
 }
