@@ -109,7 +109,7 @@ def train(args):
     with U.make_session(1) as sess:
         # Create training graph and replay buffer
         act, train, update_target, debug = deepq.build_train(
-            make_obs_ph=lambda name: U.BatchInput(env.rander('rgb_array').shape, name=name), # Unit8Input is optimized int8 input for GPUs
+            make_obs_ph=lambda name: U.BatchInput((800,1200,3), name=name), # Unit8Input is optimized int8 input for GPUs
             q_func=model,
             num_actions=env.action_space.n,
             optimizer=tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=1e-8), # often 1e-4 for atari games, why?
