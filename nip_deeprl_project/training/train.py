@@ -120,8 +120,8 @@ def train(args):
             double_q=args.double_q
         )
 
-        approximate_num_iters = args.num_steps if args.num_episodes is None else args.num_episodes * env._max_episode_steps / 2.
-        aproximate_num_iters /= 4
+        approximate_num_iters = args.num_steps if args.num_episodes is None else args.num_episodes * env.env._max_episode_steps / 2.
+        approximate_num_iters /= 4
         exploration = LinearSchedule(schedule_timesteps=args.schedule_timesteps,
                                      initial_p=args.initial_p,
                                      final_p=args.final_p)
@@ -247,7 +247,7 @@ def train(args):
                                 if steps_per_episode._value is not None else 1)
                 if args.num_episodes is not None:
                     eta = int(eps_left * float(steps_per_episode._value) / fps_estimate \
-                          if steps_per_episode._value is not None else env._max_episode_steps)
+                          if steps_per_episode._value is not None else env.env._max_episode_steps)
                 else:
                     eta = int(steps_left / fps_estimate)
                 logger.log("ETA: " + pretty_eta(eta))
