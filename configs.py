@@ -1,7 +1,7 @@
 Configs = {
     'AB_basic': {
         'env': 'Acrobot-v1',
-		'arch': [64],
+	'arch': [64],
        	'gamma': 0.99,
         'lr':5e-4,
         'num_steps': 500*200,
@@ -235,7 +235,7 @@ Configs = {
           'arch': [32],
       },
     #one bigger layer (128)
-      'AB_32': {
+      'AB_128': {
           'env': 'Acrobot-v1',
           'arch': [128],
       },
