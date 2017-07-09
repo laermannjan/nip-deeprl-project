@@ -138,6 +138,15 @@ Configs = {
         'env': 'LunarLander-v2',
         'grad_clip': 20
     },
-
+    # smaller minibatch
+    'LL_mb16': {
+        'env': 'LunarLander-v2',
+        'batch_size': 16
+    },
+    # larger minibatch
+    'LL_mb128': {
+        'env': 'LunarLander-v2',
+        'batch_size': 128
+    },
 	#TODO Softmax TD learning
 }
