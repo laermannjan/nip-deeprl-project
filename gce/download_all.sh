@@ -16,7 +16,7 @@ for ((z=0;z<${#zones[@]};++z)); do
                     --zone ${zones[z]} -- \
                     "sudo tar cf data.instance-$n.tar data"
             )
-        scp=(gcloud compute scp --recurse instance-$n:~/data.instance-$n.tar $REPO_ROOT --zone ${zones[z]})
+        scp=(gcloud compute scp --recurse instance-$n:~/data.instance-$n.tar $REPO_ROOT --zone ${zones[z]} --project $PROJECT_NAME)
         cleanup_remote=(gcloud compute ssh instance-$n\
                         --project $PROJECT_NAME \
                         --zone ${zones[z]} -- \
