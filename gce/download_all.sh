@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $DIR/set-env.sh
 if [ -z ${PROJECT_NAME+x} ]; then echo "\$PROJECT_NAME must be set to the name you gave your project on Google Cloud Platform."; exit; fi
 if [ -z ${REPO_ROOT+x} ]; then echo "\$REPO_ROOT must be set to the root of nip-deeprl-project git clone."; exit; else cd $REPO_ROOT; fi
+if [ -z ${zones+x} ]; then echo "\$zones must be set to define the list of zones you want to use for your Google Compute Engines."; exit; fi
 ssh-add ~/.ssh/google_compute_engine
 
-zones=( "europe-west1-d" "europe-west2-a" "us-east4-c" "us-east1-b" "us-central1-a" "us-west1-a" "asia-east1-a" "asia-southeast1-a")
 
 cd $REPO_ROOT
 pids=()
