@@ -27,7 +27,7 @@ RUN pip install \
     box2d-py \
     baselines
 
-RUN conda install tensorflow-gpu
+RUN conda install tensorflow-gpu scikit-image
 
 WORKDIR /code
 ENV PROJECT_PATH /code
