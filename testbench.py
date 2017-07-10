@@ -36,6 +36,8 @@ def parse_args():
     parser.add_argument("--grad-clip", type=int, default=None, help="clips the update gradients to a maximum of this number")
     parser.add_argument("--initial-p", type=float, default=1.0, help="intial p")
     parser.add_argument("--final-p", type=float, default=0.01, help="final p")
+    boolean_flag(parser, "softmax", default=False, help="If True actions are chosen via softmax, argmax otherwise.")
+    parser.add_argument("--softmax-beta", type=float, default=None, help="Value to scale softmax between uniform distribution and argmax behaviour.")
     # Bells and whistles
     boolean_flag(parser, "double-q", default=True, help="whether or not to use double q learning")
     boolean_flag(parser, "dueling", default=False, help="whether or not to use dueling model")
@@ -58,6 +60,7 @@ def parse_args():
     parser.add_argument("--repeat", type=int, default=1, help="number of times the same experiment is being repeated. if multiple configs are defined, each is being repeated individually.")
     parser.add_argument("--uid", type=str, nargs='+', default=None, help="UNIQUE identifier for each run of an experiment even across sessions")
     parser.add_argument("--write-freq", type=int, default=100, help='Write stats to disk once every time this many episodes are completed.')
+    boolean_flag(parser, "image", default=False, help="Activate pixel input")
     return parser.parse_args()
 
 def _load_config(args, config):
@@ -84,6 +87,8 @@ def load_config(args, config):
 
 if __name__ == '__main__':
     orig_args = parse_args()
+    if orig_args.softmax:
+        assert orig_args.softmax_beta is not None, 'You must set --softmax-beta if you specify --softmax'
 
     if orig_args.config is not None:
         # Iterate through all configs

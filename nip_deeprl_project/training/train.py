@@ -25,7 +25,7 @@ from baselines.common.misc_util import (
 )
 
 from nip_deeprl_project.wrappers import DualMonitor
-from nip_deeprl_project.utils import write_manifest
+from nip_deeprl_project.utils import write_manifest, build_graph_softmax
 
 
 MODELS_DIR = 'models'
@@ -108,7 +108,7 @@ def train(args):
 
     with U.make_session(1) as sess:
         # Create training graph and replay buffer
-        act, train, update_target, debug = deepq.build_train(
+        act, train, update_target, debug = build_graph_softmax.build_train(
             make_obs_ph=lambda name: U.BatchInput(env.observation_space.shape, name=name), # Unit8Input is optimized int8 input for GPUs
             q_func=model,
             num_actions=env.action_space.n,
@@ -152,7 +152,7 @@ def train(args):
             pickle_this, pickle_name = False, None
             # Take action and store transition in the replay buffer.
             update_eps = exploration.value(num_iters)
-            action = act(np.array(obs)[None], update_eps=update_eps)[0]
+            action = act(np.array(obs)[None], softmax=args.softmax, update_eps=update_eps)[0]
             env.record_exploration(update_eps)
             new_obs, rew, done, info = env.step(action)
             replay_buffer.add(obs, action, rew, new_obs, float(done))
