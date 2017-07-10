@@ -3,7 +3,7 @@ default_conv_arch = [(32, 8, 4), (64, 4, 2), (64, 3, 1)]
 Configs = {
     'AB_basic': {
         'env': 'Acrobot-v1',
-	'arch': [64],
+	    'arch': [64],
        	'gamma': 0.99,
         'lr':5e-4,
         'num_steps': 500*200,
