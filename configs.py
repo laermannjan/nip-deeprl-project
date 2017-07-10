@@ -1,3 +1,5 @@
+default_conv_arch = [(32, 8, 4), (64, 4, 2), (64, 3, 1)]
+
 Configs = {
     'AB_basic': {
         'env': 'Acrobot-v1',
@@ -276,6 +278,24 @@ Configs = {
           'env': 'Acrobot-v1',
           'grad_clip': 20
       },
+    'LL_img_basic_test0': {
+        'env': 'LunarLander-v2',
+        'conv_arch': default_conv_arch
+    },
+    'LL_img_basic_test1': {
+        'env': 'LunarLander-v2',
+        'arch': [64, 64],
+        'conv_arch': default_conv_arch
+    },
+    'AB_img_basic_test0': {
+        'env': 'Acrobot-v1',
+        'conv_arch': default_conv_arch
+    },
+    'AB_img_basic_test1': {
+        'env': 'Acrobot-v1',
+        'arch': [64, 64],
+        'conv_arch': default_conv_arch
+    },
 	#TODO Softmax policy improvement algorithm
 	# pi = exp(beta*Q(s,a)) / \sum_{over a}(exp(beta*Q(s,a))
 	# wobei beta \in [0, inf)
