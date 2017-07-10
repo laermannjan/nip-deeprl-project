@@ -61,6 +61,7 @@ def parse_args():
     parser.add_argument("--uid", type=str, nargs='+', default=None, help="UNIQUE identifier for each run of an experiment even across sessions")
     parser.add_argument("--write-freq", type=int, default=100, help='Write stats to disk once every time this many episodes are completed.')
     boolean_flag(parser, "image", default=False, help="Activate pixel input")
+    parser.add_argument("--conv-arch", type=list, default=None, help="Convolution layers for pixel processing.")
     return parser.parse_args()
 
 def _load_config(args, config):
@@ -84,6 +85,8 @@ def load_config(args, config):
     # Set default uid
     if args.uid is None:
         args.uid = '{}.{:03}'.format(os.getpid(), random.randint(0,int(1e3)))
+    if args.image:
+        assert args.conv_arch is not None, 'You must define convolutional layers.'
 
 if __name__ == '__main__':
     orig_args = parse_args()
