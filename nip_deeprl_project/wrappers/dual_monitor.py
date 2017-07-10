@@ -10,7 +10,7 @@ from gym.monitoring import video_recorder
 class DualMonitor(gym.Wrapper):
     VIDEOS_DIR = 'videos'
 
-    def __init__(self, env, directory, video_callable=None, write_upon_reset=False, write_freq=100):
+    def __init__(self, env, directory, video_callable=None, write_upon_reset=False, write_freq=100, image=False):
         """Adds two qunatities to info returned by every step:
             num_steps: int
                 Number of steps takes so far
@@ -42,6 +42,7 @@ class DualMonitor(gym.Wrapper):
         self._counter = 0
         self._write_freq = write_freq
         self.write_upon_reset = write_upon_reset
+        self.image = image
 
         self._start(directory, video_callable)
 
@@ -149,7 +150,7 @@ class DualMonitor(gym.Wrapper):
 
 
     def _flush(self, force=False):
-        if self.write_upon_reset or force:
+        if (self.write_upon_reset or force) and not self.image:
             fname = 'replay_buffer.episode_{}.npz'.format(self._episode_id)
             np.savez_compressed(os.path.join(self.directory, fname),
                      observations=np.array(self._observations),

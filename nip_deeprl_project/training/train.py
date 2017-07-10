@@ -9,6 +9,8 @@ import shutil
 import tensorflow as tf
 
 import gym
+import scipy.misc
+import math
 
 from baselines import logger
 from baselines import deepq
@@ -27,6 +29,8 @@ from baselines.common.misc_util import (
 from nip_deeprl_project.wrappers import DualMonitor
 from nip_deeprl_project.utils import write_manifest, build_graph_softmax
 
+from skimage.measure import block_reduce
+
 
 MODELS_DIR = 'models'
 PICKLE_DIR = 'agents'
@@ -43,7 +47,8 @@ def make_env(game_name, args, **kwargs):
                                 directory=args.save_dir,
                                 write_upon_reset=args.write_upon_reset,
                                 video_callable=args.capture_videos,
-                                write_freq=args.write_freq)
+                                write_freq=args.write_freq,
+                                image=args.image)
     return monitored_env
 
 
@@ -88,28 +93,35 @@ def maybe_load_model(savedir):
         logger.log("Loaded models checkpoint at {} iterations".format(state["num_iters"]))
         return state
 
-def my_model(inpt, num_actions, scope, reuse=False):
-    """This model takes as input an observation and returns values of all actions."""
-    with tf.variable_scope(scope, reuse=reuse):
-        out = inpt
-        out = layers.fully_connected(out, num_outputs=64, activation_fn=tf.nn.tanh)
-        out = layers.fully_connected(out, num_outputs=num_actions, activation_fn=None)
-        return out
+def rgb2gray(img):
+    return np.dot(img, [0.299, 0.587, 0.114])[..., None]
 
 def train(args):
     savedir = args.save_dir
     # Create and seed the env.
     env = make_env(args.env, args, _max_episode_steps=args.max_episode_steps)
-    model = deepq.models.mlp(args.arch)
-    # model = my_model
+
+
     if args.seed > 0:
         set_global_seeds(args.seed)
         env.unwrapped.seed(args.seed)
 
     with U.make_session(1) as sess:
         # Create training graph and replay buffer
-        act, train, update_target, debug = build_graph_softmax.build_train(
-            make_obs_ph=lambda name: U.BatchInput(env.observation_space.shape, name=name), # Unit8Input is optimized int8 input for GPUs
+        if args.image:
+            ds_blocksize = (6,6,1)  # downsampling blocksize
+            img_dims = env.render('rgb_array').shape
+            print('img_dims', img_dims)
+            ds_dims = [math.ceil(i*2/d) for i, d in zip(img_dims, ds_blocksize)]
+            ds_dims[-1] = 1 # bc. of grayscaling
+            model = deepq.models.cnn_to_mlp(args.conv_arch, args.arch)
+            mop = lambda name: U.BatchInput(ds_dims, name=name) # Unit8Input is optimized int8 input for GPUs
+        else:
+            model = deepq.models.mlp(args.arch)
+            mop = lambda name: U.BatchInput(env.observation_space.shape, name=name)
+
+        act, train, update_target, debug = deepq.build_train(
+            make_obs_ph= mop,
             q_func=model,
             num_actions=env.action_space.n,
             optimizer=tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=1e-8), # often 1e-4 for atari games, why?
@@ -145,24 +157,58 @@ def train(args):
         steps_per_episode = RunningAvg(0.999)
         episode_time_est = RunningAvg(0.999)
         best_mean_rew = -float('inf')
-        obs = env.reset()
+
+        if args.image:
+            env.reset()
+            pics = []
+            pics = [env.render('rgb_array') for _ in [env.step(env.action_space.sample())] * 4]
+            # for _ in range(4):
+            #     env.step(env.action_space.sample())
+            #     pics.append(env.render('rgb_array'))
+            # stack images
+            stacked_pics = np.hstack(( # vstack stacks logically horizontally and vice versa for hstack in this case
+                np.vstack((pics[0], pics[1])),
+                np.vstack((pics[2], pics[3]))
+            ))
+            print('stacked_img_dims', stacked_pics.shape)
+            # downsampling and grayscaling
+            obs = rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
+            print('obs', obs.shape)
+        else:
+            obs = env.reset()
 
         # Main trianing loop
         for num_iters in itertools.count(num_iters):
             pickle_this, pickle_name = False, None
             # Take action and store transition in the replay buffer.
             update_eps = exploration.value(num_iters)
-            action = act(np.array(obs)[None], softmax=args.softmax, update_eps=update_eps)[0]
+            if args.softmax:
+                action = act(np.array(obs)[None], softmax=args.softmax, update_eps=update_eps)[0]
+            else:
+                action = act(np.array(obs)[None], update_eps=update_eps)[0]
+
             env.record_exploration(update_eps)
             new_obs, rew, done, info = env.step(action)
             replay_buffer.add(obs, action, rew, new_obs, float(done))
-            obs = new_obs
+
+            if args.image:
+                stacked_pics[:img_dims[0], :img_dims[1]] = stacked_pics[:img_dims[0], img_dims[1]:]
+                stacked_pics[:img_dims[0], img_dims[1]:] = stacked_pics[img_dims[0]:, :img_dims[1]]
+                stacked_pics[img_dims[0]:, :img_dims[1]] = stacked_pics[img_dims[0]:, img_dims[1]:]
+                stacked_pics[img_dims[0]:, img_dims[1]:] = env.render('rgb_array')
+                obs = rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
+
+            else:
+                obs = new_obs
 
 
             if done:
                 if np.mean(info["rewards"][-100:]) > best_mean_rew:
                     best_mean_rew = np.mean(info["rewards"][-100:])
-                obs = env.reset()
+                if args.image:
+                    env.reset()
+                else:
+                    obs = env.reset()
                 if info["episodes"] + 1 == args.num_episodes:
                     env._reset_video_recorder(force=True)
 
