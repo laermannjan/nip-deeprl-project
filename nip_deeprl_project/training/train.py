@@ -189,17 +189,15 @@ def train(args):
 
             env.record_exploration(update_eps)
             new_obs, rew, done, info = env.step(action)
-            replay_buffer.add(obs, action, rew, new_obs, float(done))
-
             if args.image:
                 stacked_pics[:img_dims[0], :img_dims[1]] = stacked_pics[:img_dims[0], img_dims[1]:]
                 stacked_pics[:img_dims[0], img_dims[1]:] = stacked_pics[img_dims[0]:, :img_dims[1]]
                 stacked_pics[img_dims[0]:, :img_dims[1]] = stacked_pics[img_dims[0]:, img_dims[1]:]
                 stacked_pics[img_dims[0]:, img_dims[1]:] = env.render('rgb_array')
-                obs = rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
+                new_obs = rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
 
-            else:
-                obs = new_obs
+            replay_buffer.add(obs, action, rew, new_obs, float(done))
+            obs = new_obs
 
 
             if done:
