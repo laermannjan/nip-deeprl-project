@@ -30,6 +30,7 @@ from nip_deeprl_project.wrappers import DualMonitor
 from nip_deeprl_project.utils import write_manifest, build_graph_softmax
 
 from skimage.measure import block_reduce
+from skimage.color import rgb2gray 
 
 
 MODELS_DIR = 'models'
@@ -93,8 +94,8 @@ def maybe_load_model(savedir):
         logger.log("Loaded models checkpoint at {} iterations".format(state["num_iters"]))
         return state
 
-def rgb2gray(img):
-    return np.dot(img, [0.299, 0.587, 0.114])[..., None]
+#def rgb2gray(img):
+#    return np.dot(img, [0.299, 0.587, 0.114])[..., None]
 
 def train(args):
     savedir = args.save_dir
@@ -112,8 +113,10 @@ def train(args):
             ds_blocksize = (6,6,1)  # downsampling blocksize
             img_dims = env.render('rgb_array').shape
             print('img_dims', img_dims)
-            ds_dims = [math.ceil(i*2/d) for i, d in zip(img_dims, ds_blocksize)]
-            ds_dims[-1] = 1 # bc. of grayscaling
+            #ds_dims = [math.ceil(i*2/d) for i, d in zip(img_dims, ds_blocksize)]
+            -------------------------------------------------------------------------------------------
+            ds_dims = block_reduce(rgb2gray(pics).reshape(img_dims[0],img_dims[0],4),ds_blocksize,func=np.mean)
+            #ds_dims[-1] = 1 # bc. of grayscaling
             model = deepq.models.cnn_to_mlp(args.conv_arch, args.arch)
             mop = lambda name: U.BatchInput(ds_dims, name=name) # Unit8Input is optimized int8 input for GPUs
         else:
@@ -161,18 +164,21 @@ def train(args):
         if args.image:
             env.reset()
             pics = []
-            pics = [env.render('rgb_array') for _ in [env.step(env.action_space.sample())] * 4]
+            pics = np.array([env.render('rgb_array') for _ in [env.step(env.action_space.sample())] * 4])
             # for _ in range(4):
             #     env.step(env.action_space.sample())
             #     pics.append(env.render('rgb_array'))
             # stack images
-            stacked_pics = np.hstack(( # vstack stacks logically horizontally and vice versa for hstack in this case
-                np.vstack((pics[0], pics[1])),
-                np.vstack((pics[2], pics[3]))
-            ))
+            #stacked_pics = np.hstack(( # vstack stacks logically horizontally and vice versa for hstack in this case
+            #    np.vstack((pics[0], pics[1])),
+            #    np.vstack((pics[2], pics[3]))
+            #))
+            # images as channels instead of of grid:
+            pics = block_reduce(rgb2gray(pics).reshape(img_dims[0],img_dims[0],4),ds_blocksize,func=np.mean)
+            stacked_pics = pics.reshape(pics.shape[2],pics.shape[0],pics.shape[1])          
             print('stacked_img_dims', stacked_pics.shape)
             # downsampling and grayscaling
-            obs = rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
+            obs = stacked_pics #rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
             print('obs', obs.shape)
         else:
             obs = env.reset()
@@ -190,11 +196,16 @@ def train(args):
             env.record_exploration(update_eps)
             new_obs, rew, done, info = env.step(action)
             if args.image:
-                stacked_pics[:img_dims[0], :img_dims[1]] = stacked_pics[:img_dims[0], img_dims[1]:]
-                stacked_pics[:img_dims[0], img_dims[1]:] = stacked_pics[img_dims[0]:, :img_dims[1]]
-                stacked_pics[img_dims[0]:, :img_dims[1]] = stacked_pics[img_dims[0]:, img_dims[1]:]
-                stacked_pics[img_dims[0]:, img_dims[1]:] = env.render('rgb_array')
-                new_obs = rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
+                #stacked_pics[:img_dims[0], :img_dims[1]] = stacked_pics[:img_dims[0], img_dims[1]:]
+                #stacked_pics[:img_dims[0], img_dims[1]:] = stacked_pics[img_dims[0]:, :img_dims[1]]
+                #stacked_pics[img_dims[0]:, :img_dims[1]] = stacked_pics[img_dims[0]:, img_dims[1]:]
+                #stacked_pics[img_dims[0]:, img_dims[1]:] = env.render('rgb_array')
+                stacked_pics[3] = stacked_pics[2]
+                stacked_pics[2] = stacked_pics[1]
+                stacked_pics[1] = stacked_pics[0]
+                stacked_pics[0] = rgb2gray(block_reduce(env.render('rgb_array'), ds_blocksize, func=np.mean))
+           
+                new_obs = stacked_pics#rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
 
             replay_buffer.add(obs, action, rew, new_obs, float(done))
             obs = new_obs
