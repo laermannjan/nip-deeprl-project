@@ -164,7 +164,7 @@ def train(args):
         if args.image:
             env.reset()
             #pics = []
-            pics = np.array([env.render('rgb_array') for _ in [env.step(env.action_space.sample())] * 4])
+            pics = np.array([rgb2gray(env.render('rgb_array')) for _ in [env.step(env.action_space.sample())] * 4])
             # for _ in range(4):
             #     env.step(env.action_space.sample())
             #     pics.append(env.render('rgb_array'))
@@ -174,8 +174,8 @@ def train(args):
             #    np.vstack((pics[2], pics[3]))
             #))
             # images as channels instead of of grid:
-            pics = block_reduce(rgb2gray(pics).reshape(img_dims[0],img_dims[0],4),ds_blocksize,func=np.mean)
-            stacked_pics = pics.reshape(pics.shape[2],pics.shape[0],pics.shape[1])          
+            pics = block_reduce(pics,(1,6,6),ds_blocksize,func=np.mean)
+            stacked_pics = pics         
             print('stacked_img_dims', stacked_pics.shape)
             # downsampling and grayscaling
             obs = stacked_pics #rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
