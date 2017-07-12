@@ -275,12 +275,14 @@ Configs = {
       },
     'LL_img_basic_test0': {
         'env': 'LunarLander-v2',
+        'image': True,
         'arch': [256],
         'conv_arch': default_conv_arch,
         'schedule_timesteps': 500*100,
     },
     'LL_img_basic_test0_prio': {
         'env': 'LunarLander-v2',
+        'image': True,
         'arch': [256],
         'conv_arch': default_conv_arch,
         'schedule_timesteps': 500*100,
@@ -288,12 +290,14 @@ Configs = {
     },
     'LL_img_basic_test1': {
         'env': 'LunarLander-v2',
+        'image': True,
         'arch': [265, 64],
         'schedule_timesteps': 500*100,
         'conv_arch': default_conv_arch
     },
     'LL_img_basic_test1': {
         'env': 'LunarLander-v2',
+        'image': True,
         'arch': [265, 128],
         'schedule_timesteps': 500*100,
         'conv_arch': default_conv_arch
