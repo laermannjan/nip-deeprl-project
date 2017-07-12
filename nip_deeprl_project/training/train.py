@@ -114,8 +114,8 @@ def train(args):
             img_dims = env.render('rgb_array').shape
             print('img_dims', img_dims)
             #ds_dims = [math.ceil(i*2/d) for i, d in zip(img_dims, ds_blocksize)]
-            -------------------------------------------------------------------------------------------
-            ds_dims = block_reduce(rgb2gray(pics).reshape(img_dims[0],img_dims[0],4),ds_blocksize,func=np.mean)
+            pics = np.array([np.ones((img_dims[0],img_dims[1],3))]*4)
+            ds_dims = block_reduce(rgb2gray(pics).reshape(img_dims[0],img_dims[1],4),ds_blocksize,func=np.mean)
             #ds_dims[-1] = 1 # bc. of grayscaling
             model = deepq.models.cnn_to_mlp(args.conv_arch, args.arch)
             mop = lambda name: U.BatchInput(ds_dims, name=name) # Unit8Input is optimized int8 input for GPUs
@@ -163,7 +163,7 @@ def train(args):
 
         if args.image:
             env.reset()
-            pics = []
+            #pics = []
             pics = np.array([env.render('rgb_array') for _ in [env.step(env.action_space.sample())] * 4])
             # for _ in range(4):
             #     env.step(env.action_space.sample())
