@@ -295,7 +295,7 @@ Configs = {
         'schedule_timesteps': 500*100,
         'conv_arch': default_conv_arch
     },
-    'LL_img_basic_test1': {
+    'LL_img_basic_test2': {
         'env': 'LunarLander-v2',
         'image': True,
         'arch': [265, 128],
