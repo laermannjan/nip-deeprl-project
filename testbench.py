@@ -62,6 +62,8 @@ def parse_args():
     parser.add_argument("--write-freq", type=int, default=100, help='Write stats to disk once every time this many episodes are completed.')
     boolean_flag(parser, "image", default=False, help="Activate pixel input")
     parser.add_argument("--conv-arch", type=list, default=None, help="Convolution layers for pixel processing.")
+    parser.add_argument("--receptive-field-depth", type=int, default=4, help="How many pics are stacked together to form the receptive field as an observation.")
+    parser.add_argument("--frameskip", type=int, default=4, help="Number of frames skipped, i.e. in which the agent just repeats its action.")
     return parser.parse_args()
 
 def _load_config(args, config):

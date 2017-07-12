@@ -107,16 +107,14 @@ def train(args):
         set_global_seeds(args.seed)
         env.unwrapped.seed(args.seed)
 
-    with U.make_session(1) as sess:
+    with U.make_session(8) as sess:
         # Create training graph and replay buffer
         if args.image:
             ds_blocksize = (6,6,1)  # downsampling blocksize
-            img_dims = env.render('rgb_array').shape
-            print('img_dims', img_dims)
-            #ds_dims = [math.ceil(i*2/d) for i, d in zip(img_dims, ds_blocksize)]
-            pics = np.array([np.ones((img_dims[0],img_dims[1],3))]*4)
-            ds_dims = block_reduce(rgb2gray(pics).reshape(img_dims[0],img_dims[1],4),ds_blocksize,func=np.mean)
-            #ds_dims[-1] = 1 # bc. of grayscaling
+            ds_dims = [math.ceil(i/d)
+                       for i, d in zip(env.render('rgb_array').shape,
+                                       ds_blocksize)]
+            ds_dims[-1] = args.receptive_field_depth
             model = deepq.models.cnn_to_mlp(args.conv_arch, args.arch)
             mop = lambda name: U.BatchInput(ds_dims, name=name) # Unit8Input is optimized int8 input for GPUs
         else:
@@ -159,27 +157,21 @@ def train(args):
         start_time, start_steps = None, None
         steps_per_episode = RunningAvg(0.999)
         episode_time_est = RunningAvg(0.999)
+        if args.image:
+            steps_per_episode = RunningAvg(0.9)
+            episode_time_est = RunningAvg(0.9)
+
         best_mean_rew = -float('inf')
 
         if args.image:
             env.reset()
-            #pics = []
-            pics = np.array([rgb2gray(env.render('rgb_array')) for _ in [env.step(env.action_space.sample())] * 4])
-            # for _ in range(4):
-            #     env.step(env.action_space.sample())
-            #     pics.append(env.render('rgb_array'))
-            # stack images
-            #stacked_pics = np.hstack(( # vstack stacks logically horizontally and vice versa for hstack in this case
-            #    np.vstack((pics[0], pics[1])),
-            #    np.vstack((pics[2], pics[3]))
-            #))
-            # images as channels instead of of grid:
-            pics = block_reduce(pics,(1,6,6),ds_blocksize,func=np.mean)
-            stacked_pics = pics         
-            print('stacked_img_dims', stacked_pics.shape)
-            # downsampling and grayscaling
-            obs = stacked_pics #rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
-            print('obs', obs.shape)
+            obs = block_reduce( # downsampling
+                np.dstack( # stacking images as quasi-channels
+                    [rgb2gray(env.render('rgb_array')) # grayscaling
+                     for _ in [env.step(env.action_space.sample())] * args.receptive_field_depth]),
+                ds_blocksize,
+                func=np.mean # shouldn't this be np.max?
+            )
         else:
             obs = env.reset()
 
@@ -194,18 +186,27 @@ def train(args):
                 action = act(np.array(obs)[None], update_eps=update_eps)[0]
 
             env.record_exploration(update_eps)
-            new_obs, rew, done, info = env.step(action)
             if args.image:
-                #stacked_pics[:img_dims[0], :img_dims[1]] = stacked_pics[:img_dims[0], img_dims[1]:]
-                #stacked_pics[:img_dims[0], img_dims[1]:] = stacked_pics[img_dims[0]:, :img_dims[1]]
-                #stacked_pics[img_dims[0]:, :img_dims[1]] = stacked_pics[img_dims[0]:, img_dims[1]:]
-                #stacked_pics[img_dims[0]:, img_dims[1]:] = env.render('rgb_array')
-                stacked_pics[3] = stacked_pics[2]
-                stacked_pics[2] = stacked_pics[1]
-                stacked_pics[1] = stacked_pics[0]
-                stacked_pics[0] = rgb2gray(block_reduce(env.render('rgb_array'), ds_blocksize, func=np.mean))
-           
-                new_obs = stacked_pics#rgb2gray(block_reduce(stacked_pics, ds_blocksize, func=np.mean))
+                # repeat action for k steps but don't record them.
+                new_obs = []
+                rew = 0
+                for _, new_rew, done, info in [env.step(action)] * args.frameskip:
+                    new_pic = rgb2gray(env.render('rgb_array'))
+                    new_obs.append(new_pic)
+                    rew += new_rew
+                    if done:
+                        for i in range(args.frameskip - len(new_obs)):
+                            new_obs.append(new_pic)
+                        break
+
+                new_obs = block_reduce( # downsampling
+                    np.dstack(new_obs),# stacking images as quasi-channels
+                    ds_blocksize,
+                    func=np.mean # shouldn't this be np.max?
+                )
+            else:
+                new_obs, rew, done, info = env.step(action)
+
 
             replay_buffer.add(obs, action, rew, new_obs, float(done))
             obs = new_obs

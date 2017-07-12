@@ -275,20 +275,27 @@ Configs = {
       },
     'LL_img_basic_test0': {
         'env': 'LunarLander-v2',
+        'arch': [256],
+        'conv_arch': default_conv_arch,
+        'schedule_timesteps': 500*100,
+    },
+    'LL_img_basic_test0_prio': {
+        'env': 'LunarLander-v2',
+        'arch': [256],
+        'conv_arch': default_conv_arch,
+        'schedule_timesteps': 500*100,
+        'prioritized': True,
+    },
+    'LL_img_basic_test1': {
+        'env': 'LunarLander-v2',
+        'arch': [265, 64],
+        'schedule_timesteps': 500*100,
         'conv_arch': default_conv_arch
     },
     'LL_img_basic_test1': {
         'env': 'LunarLander-v2',
-        'arch': [64, 64],
-        'conv_arch': default_conv_arch
-    },
-    'AB_img_basic_test0': {
-        'env': 'Acrobot-v1',
-        'conv_arch': default_conv_arch
-    },
-    'AB_img_basic_test1': {
-        'env': 'Acrobot-v1',
-        'arch': [64, 64],
+        'arch': [265, 128],
+        'schedule_timesteps': 500*100,
         'conv_arch': default_conv_arch
     },
 	#TODO Softmax policy improvement algorithm
