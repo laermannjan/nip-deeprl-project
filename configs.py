@@ -150,6 +150,26 @@ Configs = {
         'env': 'LunarLander-v2',
         'batch_size': 128
     },
+    'LL_256_128': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 128]
+    },
+    'LL_256': {
+        'env': 'LunarLander-v2',
+        'arch': [256]
+    },
+    'LL_256_256': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 256]
+    },
+    'LL_128_128_e10k': {
+        'env': 'LunarLander-v2',
+        'arch': [128, 128],
+        'schedule_timesteps': 10000*650,
+        'num_episodes': 1000*50,
+        'lr': 1e-4,
+        'batch_size': 64,
+    },
 	# search a stable AB basic
     'AB_64': {
         'env': 'Acrobot-v1',
