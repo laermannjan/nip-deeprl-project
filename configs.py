@@ -162,13 +162,63 @@ Configs = {
         'env': 'LunarLander-v2',
         'arch': [256, 256]
     },
-    'LL_128_128_e10k': {
+    'LL_256_256_256': {
         'env': 'LunarLander-v2',
-        'arch': [128, 128],
-        'schedule_timesteps': 10000*650,
-        'num_episodes': 1000*50,
+        'arch': [256, 256, 256]
+    },
+    'LL_256_256_512': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 256, 512]
+    },
+    'LL_256_512': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 512]
+    },
+    'LL_512_512': {
+        'env': 'LunarLander-v2',
+        'arch': [512, 512]
+    },
+    'LL_128_256_512': {
+        'env': 'LunarLander-v2',
+        'arch': [128, 256, 512]
+    },
+    'LL_512_256_128': {
+        'env': 'LunarLander-v2',
+        'arch': [512, 256, 128]
+    },
+    'LL_512_512_e10k': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 256],
+        'schedule_timesteps': 10000*200,
+        'num_episodes': 1000*100,
         'lr': 1e-4,
         'batch_size': 64,
+    },
+    'LL_256_256_e10k': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 256],
+        'schedule_timesteps': 10000*200,
+        'num_episodes': 1000*100,
+        'lr': 1e-4,
+        'batch_size': 64,
+    },
+    'LL_256_256_e10k_lf10': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 256],
+        'schedule_timesteps': 10000*200,
+        'num_episodes': 1000*100,
+        'lr': 1e-4,
+        'batch_size': 64,
+        'learning_freq': 10,
+    },
+    'LL_256_256_e10k_numsamples10': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 256],
+        'schedule_timesteps': 10000*200,
+        'num_episodes': 1000*100,
+        'lr': 1e-4,
+        'batch_size': 64,
+        'num_samples': 20,
     },
 	# search a stable AB basic
     'AB_64': {
