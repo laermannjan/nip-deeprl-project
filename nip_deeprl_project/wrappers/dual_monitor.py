@@ -158,10 +158,10 @@ class DualMonitor(gym.Wrapper):
                      rewards=np.array(self._rewards),
                      dones=np.array(self._dones)
             )
-            del self._observations[:-200]
-            del self._actions[:-200]
-            del self._rewards[:-200]
-            del self._dones[:-200]
+            self._observations = []
+            self._actions = []
+            self._rewards = []
+            self._dones = []
 
             if self._episode_id % self._write_freq == 0 or force:
                 # Write stats file
