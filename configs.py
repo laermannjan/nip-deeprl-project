@@ -154,9 +154,102 @@ Configs = {
         'env': 'LunarLander-v2',
         'arch': [256, 128]
     },
+    'LL_8': {
+        'env': 'LunarLander-v2',
+        'arch': [8]
+    },
+    'LL_16': {
+        'env': 'LunarLander-v2',
+        'arch': [16]
+    },
+    'LL_32': {
+        'env': 'LunarLander-v2',
+        'arch': [32]
+    },
     'LL_256': {
         'env': 'LunarLander-v2',
         'arch': [256]
+    },
+    'LL_512': {
+        'env': 'LunarLander-v2',
+        'arch': [512]
+    },
+     'LL_16_16': {
+        'env': 'LunarLander-v2',
+        'arch': [16, 16]
+    },
+    'LL_32_32': {
+        'env': 'LunarLander-v2',
+        'arch': [32, 32]
+    },
+     'LL_16_16_16': {
+        'env': 'LunarLander-v2',
+        'arch': [16, 16, 16]
+    },
+    'LL_64_128': {
+        'env': 'LunarLander-v2',
+        'arch': [64, 128]
+    },
+    'LL_128_256': {
+        'env': 'LunarLander-v2',
+        'arch': [128_256]
+    },
+    'LL_512_256': {
+        'env': 'LunarLander-v2',
+        'arch': [512, 256]
+    },
+      'LL_256_1024': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 1024]
+    },
+     'LL_256_32': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 32]
+    },
+     'LL_128_16': {
+        'env': 'LunarLander-v2',
+        'arch': [128, 16]
+    },
+     'LL_128_512': {
+        'env': 'LunarLander-v2',
+        'arch': [128, 512]
+    },
+     'LL_256_128_mb16': {
+         'env': 'LunarLander-v2',
+         'arch': [256, 128],
+         'batch_size': 16,
+    },
+    'LL_256_128_mb128': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 128],
+        'batch_size': 128,
+    },
+    'LL_512_512_gc001': {
+        'env': 'LunarLander-v2',
+        'arch': [512, 512],
+        'grad_clip': 0.01,
+    },
+    'LL_256_128_ns4': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 128],
+        'num_samples': 4,
+    },
+    'LL_256_128_ns4_rpb4_tf4': {
+        'env': 'LunarLander-v2',
+        'arch': [256, 128],
+        'num_samples': 4,
+        'learning_freq': 4,
+        'replay_buffer_size': 500*100*4
+    },
+    'LL_512_512_ur5': {
+        'env': 'LunarLander-v2',
+        'arch': [512, 512],
+        'target_update_freq': 500*2*5,
+    },
+    'LL_512_512_ur02': {
+        'env': 'LunarLander-v2',
+        'arch': [512, 512],
+        'target_update_freq': 500*2*.2,
     },
     'LL_256_256': {
         'env': 'LunarLander-v2',
