@@ -1,7 +1,5 @@
 import gym
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from baselines import deepq
 
 # playing the random agent for 10k episodes 5 times and saving a numpy array
