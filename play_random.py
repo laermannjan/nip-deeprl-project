@@ -34,7 +34,7 @@ def main():
         plot_array = np.array(plot_array)
         
         print('save as ',"random{}.npy".format(enviro[:4]))
-        np.save("random{}.npy".format(enviro[:4]),plot_array)
+        np.save("/mnt/data/random{}.npy".format(enviro[:4]),plot_array)
         print ('shape of saved array: ',plot_array.shape)
         '''
         plt.figure(figsize=(15,5))
